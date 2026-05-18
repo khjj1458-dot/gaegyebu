@@ -701,22 +701,21 @@ const SERVER_URL = 'https://script.google.com/macros/s/AKfycbw-XicWOqWOw9W1tI8hK
 let syncing = false;
 
 async function syncToServer() {
-  if (syncing) return;
+  if (syncing) { window._pendingSync = true; return; }
   syncing = true;
+  window._pendingSync = false;
   showSyncStatus('syncing');
   try {
-    const res = await fetch(SERVER_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'saveAll',
-        transactions: D.transactions,
-        impulses: D.impulses,
-        installments: D.installments,
-        budgets: D.budgets,
-        categories: D.categories,
-        settings: D.settings,
-      })
+    const payload = JSON.stringify({
+      action: 'saveAll',
+      transactions: D.transactions,
+      impulses: D.impulses,
+      installments: D.installments,
+      budgets: D.budgets,
+      categories: D.categories,
+      settings: D.settings,
     });
+    const res = await fetch(SERVER_URL, { method: 'POST', body: payload });
     const json = await res.json();
     if (json.success) showSyncStatus('ok');
     else showSyncStatus('err');
@@ -724,6 +723,7 @@ async function syncToServer() {
     showSyncStatus('err');
   }
   syncing = false;
+  if (window._pendingSync) syncToServer();
 }
 
 async function loadFromServer() {
@@ -1234,16 +1234,30 @@ function addInst() {
     document.getElementById('inst-reason2').value.trim(),
     document.getElementById('inst-reason3').value.trim(),
   ].filter(Boolean);
+  const instId = Date.now();
+  const instMonthly = Math.round(total/months) + (freeType!=='free'?fee:0);
   D.installments.push({
-    id:Date.now(), name, total, months,
+    id:instId, name, total, months,
     freeType, fee, start,
     cat: instSelCat,
     impulse: instIsImpulse,
     reasons: instReasons,
     paid:0
   });
+  // 첫 달 지출 내역 자동 추가
+  D.transactions.push({
+    id: Date.now()+1,
+    type: 'expense',
+    amount: instMonthly,
+    name: name + ' 할부 1/' + months + '회',
+    date: new Date().toISOString().split('T')[0],
+    cat: instSelCat,
+    impulse: instIsImpulse,
+    reasons: instReasons
+  });
+  D.installments.find(i=>i.id===instId).paid = 1;
   save(true); closeModal('modal-inst'); renderInst(); renderAll();
-  toast('💳 할부가 추가됐어요');
+  toast('💳 할부가 추가되고 1회차 지출이 기록됐어요');
 }
 
 function delInst(id) {
