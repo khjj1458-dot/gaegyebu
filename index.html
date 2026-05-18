@@ -697,7 +697,7 @@ input[type=number]{-moz-appearance:textfield;}
 
 <script>
 // ── 서버 연동 ──
-const SERVER_URL = 'https://script.google.com/macros/s/AKfycbw-XicWOqWOw9W1tI8hKGQP6yz23mpVUTfRQipOoH0o4O2Dc5bXEmhv8Ap9J9FyXDvo/exec';
+const SERVER_URL = 'https://script.google.com/macros/s/AKfycbzSjAe0CRwl6yO2Kpos2sjSj8zAh6OywkuA6mijp2L--lbB-oU2Jp1F7salXzqBE2hR/exec';
 let syncing = false;
 
 async function syncToServer() {
@@ -732,17 +732,22 @@ async function loadFromServer() {
     const res = await fetch(SERVER_URL + '?action=getAll');
     const json = await res.json();
     if (json.transactions !== undefined) {
-      D.transactions  = json.transactions  || [];
-      D.impulses      = json.impulses      || [];
-      D.installments  = json.installments  || [];
-      D.budgets       = json.budgets       || {};
-      D.settings      = json.settings      || { salary:0, card:0 };
-      // 카테고리는 로컬 우선 - 로컬에 없을 때만 DEFAULT_CATS 사용
+      // 서버 데이터가 있으면 사용, 없으면 로컬 유지
+      if (json.transactions.length > 0 || D.transactions.length === 0)
+        D.transactions = json.transactions || [];
+      if (json.impulses.length > 0 || D.impulses.length === 0)
+        D.impulses = json.impulses || [];
+      if (json.installments && (json.installments.length > 0 || D.installments.length === 0))
+        D.installments = json.installments || [];
+      if (Object.keys(json.budgets||{}).length > 0)
+        D.budgets = json.budgets;
+      if (json.settings && Object.keys(json.settings).length > 0)
+        D.settings = json.settings;
+      // 카테고리는 로컬 우선
       if (!D.categories || D.categories.length < 3) {
         D.categories = DEFAULT_CATS;
       }
-      // 시트 카테고리는 무시 (앱에서 직접 관리)
-      localStorage.setItem('gbv2', JSON.stringify(D)); // 로컬만 저장, 서버 재전송 안 함
+      localStorage.setItem('gbv2', JSON.stringify(D));
       renderAll();
       showSyncStatus('ok');
       toast('☁️ 구글 시트에서 불러왔어요');
