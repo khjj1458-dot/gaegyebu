@@ -524,6 +524,17 @@ input[type=number]{-moz-appearance:textfield;}
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">📊 월 결제금 미리보기</div>
       <div style="font-size:18px;font-weight:900;color:var(--warn)" id="inst-monthly-preview">-</div>
     </div>
+    <div class="impulse-check" style="margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
+        <input type="checkbox" id="inst-is-impulse" style="width:16px;height:16px;"> 충동구매
+      </label>
+      <div id="inst-impulse-reason-wrap" style="display:none;margin-top:8px;">
+        <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;font-weight:700;">왜 샀나요? (솔직하게)</div>
+        <input class="input-field small" id="inst-reason1" placeholder="이유 1" style="margin-bottom:6px;">
+        <input class="input-field small" id="inst-reason2" placeholder="이유 2 (선택)" style="margin-bottom:6px;">
+        <input class="input-field small" id="inst-reason3" placeholder="이유 3 (선택)">
+      </div>
+    </div>
     <button class="submit-btn" onclick="addInst()">추가</button>
   </div>
 </div>
@@ -665,6 +676,17 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="input-group">
       <label class="input-label">납부 완료 회차</label>
       <input class="input-field" id="edit-inst-paid" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
+    </div>
+    <div class="impulse-check" style="margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
+        <input type="checkbox" id="edit-inst-is-impulse" style="width:16px;height:16px;"> 충동구매
+      </label>
+      <div id="edit-inst-impulse-reason-wrap" style="display:none;margin-top:8px;">
+        <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;font-weight:700;">왜 샀나요? (솔직하게)</div>
+        <input class="input-field small" id="edit-inst-reason1" placeholder="이유 1" style="margin-bottom:6px;">
+        <input class="input-field small" id="edit-inst-reason2" placeholder="이유 2 (선택)" style="margin-bottom:6px;">
+        <input class="input-field small" id="edit-inst-reason3" placeholder="이유 3 (선택)">
+      </div>
     </div>
     <button class="submit-btn" onclick="saveEditInst()">저장</button>
   </div>
@@ -1141,6 +1163,11 @@ function renderImpulse() {
 // ── 할부 함수들 ──
 function openInstModal() {
   document.getElementById('inst-name').value='';
+  document.getElementById('inst-is-impulse').checked=false;
+  document.getElementById('inst-impulse-reason-wrap').style.display='none';
+  document.getElementById('inst-reason1').value='';
+  document.getElementById('inst-reason2').value='';
+  document.getElementById('inst-reason3').value='';
   document.getElementById('inst-total').value='';
   document.getElementById('inst-months').value='6';
   document.getElementById('inst-free-type').value='free';
@@ -1201,10 +1228,18 @@ function addInst() {
   const fee=getRawVal('inst-fee');
   const start=document.getElementById('inst-start').value;
   if(!name||!total||!start){toast('상품명, 금액, 시작월을 입력해주세요');return;}
+  const instIsImpulse=document.getElementById('inst-is-impulse').checked;
+  const instReasons=[
+    document.getElementById('inst-reason1').value.trim(),
+    document.getElementById('inst-reason2').value.trim(),
+    document.getElementById('inst-reason3').value.trim(),
+  ].filter(Boolean);
   D.installments.push({
     id:Date.now(), name, total, months,
     freeType, fee, start,
     cat: instSelCat,
+    impulse: instIsImpulse,
+    reasons: instReasons,
     paid:0
   });
   save(true); closeModal('modal-inst'); renderInst(); renderAll();
@@ -1230,8 +1265,8 @@ function payInst(id) {
     name: inst.name + ' 할부 ' + inst.paid + '/' + inst.months + '회',
     date: new Date().toISOString().split('T')[0],
     cat: inst.cat || 'cardpay',
-    impulse: false,
-    reasons: []
+    impulse: inst.impulse||false,
+    reasons: inst.reasons||[]
   });
   save(true); renderAll();
   toast('💳 할부 납부가 지출 내역에 추가됐어요');
@@ -1294,7 +1329,7 @@ function renderInst() {
       return `<div class="inst-card">
         <div class="inst-header">
           <div>
-            <div class="inst-name">${inst.name}</div>
+            <div class="inst-name">${inst.name}${inst.impulse?'<span class="impulse-tag" style="margin-left:6px;">충동</span>':''}</div>
             <div style="font-size:10px;color:var(--text3);margin-top:2px">${inst.start} ~ ${endStr}</div>
           </div>
           <span class="inst-badge ${badgeCls[inst.freeType]}">${badgeMap[inst.freeType]}</span>
@@ -1461,6 +1496,11 @@ function editInst(id) {
   document.getElementById('edit-inst-start').value=inst.start;
   document.getElementById('edit-inst-paid').value=inst.paid||0;
   document.getElementById('edit-fee-wrap').style.display=inst.freeType!=='free'?'block':'none';
+  document.getElementById('edit-inst-is-impulse').checked=inst.impulse||false;
+  document.getElementById('edit-inst-impulse-reason-wrap').style.display=inst.impulse?'block':'none';
+  document.getElementById('edit-inst-reason1').value=(inst.reasons&&inst.reasons[0])||'';
+  document.getElementById('edit-inst-reason2').value=(inst.reasons&&inst.reasons[1])||'';
+  document.getElementById('edit-inst-reason3').value=(inst.reasons&&inst.reasons[2])||'';
   renderEditInstCatGrid();
   document.getElementById('modal-edit-inst').classList.add('show');
 }
@@ -1480,6 +1520,12 @@ function saveEditInst() {
   inst.start=document.getElementById('edit-inst-start').value||inst.start;
   inst.paid=getRawVal('edit-inst-paid');
   inst.cat=editInstSelCat||inst.cat;
+  inst.impulse=document.getElementById('edit-inst-is-impulse').checked;
+  inst.reasons=[
+    document.getElementById('edit-inst-reason1').value.trim(),
+    document.getElementById('edit-inst-reason2').value.trim(),
+    document.getElementById('edit-inst-reason3').value.trim(),
+  ].filter(Boolean);
   save(true); closeModal('modal-edit-inst'); renderAll();
   toast('✅ 할부가 수정됐어요');
 }
@@ -1525,6 +1571,12 @@ function renderSettings() {
 if(Notification.permission==='default') Notification.requestPermission();
 document.getElementById('edit-is-impulse').addEventListener('change', function() {
   document.getElementById('edit-impulse-reason-wrap').style.display = this.checked ? 'block' : 'none';
+});
+document.getElementById('inst-is-impulse').addEventListener('change', function() {
+  document.getElementById('inst-impulse-reason-wrap').style.display = this.checked ? 'block' : 'none';
+});
+document.getElementById('edit-inst-is-impulse').addEventListener('change', function() {
+  document.getElementById('edit-inst-impulse-reason-wrap').style.display = this.checked ? 'block' : 'none';
 });
 // 카테고리 기본값 보장
 if(!D.categories || D.categories.length < 3) D.categories = DEFAULT_CATS;
