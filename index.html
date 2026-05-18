@@ -513,6 +513,10 @@ input[type=number]{-moz-appearance:textfield;}
       </div>
     </div>
     <div class="input-group">
+      <label class="input-label">카테고리</label>
+      <div class="cat-select-grid" id="inst-cat-sel-grid"></div>
+    </div>
+    <div class="input-group">
       <label class="input-label">시작월 (첫 결제월)</label>
       <input class="input-field" id="inst-start" type="month">
     </div>
@@ -641,6 +645,10 @@ input[type=number]{-moz-appearance:textfield;}
         <label class="input-label">월 수수료</label>
         <input class="input-field" id="edit-inst-fee" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
       </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">카테고리</label>
+      <div class="cat-select-grid" id="edit-inst-cat-grid"></div>
     </div>
     <div class="input-group">
       <label class="input-label">시작월</label>
@@ -828,6 +836,13 @@ function showPage(name, el) {
   else if (name==='inst') { fab.onclick=()=>openInstModal(); fab.style.display='flex'; }
   else { fab.onclick=openTxModal; fab.style.display='flex'; }
   renderAll();
+}
+
+function openTxWithCat(catId) {
+  openTxModal();
+  selCat = catId;
+  curType = 'expense';
+  renderCatSelGrid();
 }
 
 function openTxModal() {
@@ -1032,7 +1047,7 @@ function renderHome() {
     const budget=D.budgets[c.id]||0;
     const pct=Math.round(amt/maxAmt*100);
     const overBudget=budget>0&&amt>budget;
-    return `<div class="cat-card">
+    return `<div class="cat-card" onclick="openTxWithCat('${c.id}')" style="cursor:pointer;">
       <div class="cat-icon">${c.icon}</div>
       <div class="cat-name">${c.name}</div>
       <div class="cat-amt" style="color:${overBudget?'var(--danger)':c.color}">${amt>0?fmt(amt):'-'}</div>
@@ -1126,8 +1141,31 @@ function openInstModal() {
   document.getElementById('partial-desc-wrap').style.display='none';
   const now=new Date();
   document.getElementById('inst-start').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  instSelCat = D.categories[0]?.id || 'shop';
+  renderInstCatGrid();
   calcInstMonth();
   document.getElementById('modal-inst').classList.add('show');
+}
+
+let instSelCat = 'shop';
+let editInstSelCat = 'shop';
+
+function renderInstCatGrid() {
+  const cats = D.categories;
+  if(!cats.find(c=>c.id===instSelCat)) instSelCat=cats[0]?.id||'shop';
+  document.getElementById('inst-cat-sel-grid').innerHTML = cats.map(c=>`
+    <div class="cat-sel-btn ${instSelCat===c.id?'selected':''}" onclick="instSelCat='${c.id}';renderInstCatGrid()">
+      <div class="icon">${c.icon}</div><div class="name">${c.name}</div>
+    </div>`).join('');
+}
+
+function renderEditInstCatGrid() {
+  const cats = D.categories;
+  if(!cats.find(c=>c.id===editInstSelCat)) editInstSelCat=cats[0]?.id||'shop';
+  document.getElementById('edit-inst-cat-grid').innerHTML = cats.map(c=>`
+    <div class="cat-sel-btn ${editInstSelCat===c.id?'selected':''}" onclick="editInstSelCat='${c.id}';renderEditInstCatGrid()">
+      <div class="icon">${c.icon}</div><div class="name">${c.name}</div>
+    </div>`).join('');
 }
 
 function toggleFeeInput() {
@@ -1158,7 +1196,8 @@ function addInst() {
   D.installments.push({
     id:Date.now(), name, total, months,
     freeType, fee, start,
-    paid:0 // 납부 회차
+    cat: instSelCat,
+    paid:0
   });
   save(true); closeModal('modal-inst'); renderInst(); renderAll();
   toast('💳 할부가 추가됐어요');
@@ -1174,7 +1213,20 @@ function payInst(id) {
   const inst=D.installments.find(i=>i.id===id);
   if(!inst) return;
   inst.paid=Math.min(inst.paid+1, inst.months);
+  // 지출 내역에도 자동 추가
+  const monthly=Math.round(inst.total/inst.months)+(inst.freeType!=='free'?inst.fee:0);
+  D.transactions.push({
+    id: Date.now(),
+    type: 'expense',
+    amount: monthly,
+    name: inst.name + ' 할부 ' + inst.paid + '/' + inst.months + '회',
+    date: new Date().toISOString().split('T')[0],
+    cat: inst.cat || 'cardpay',
+    impulse: false,
+    reasons: []
+  });
   save(true); renderAll();
+  toast('💳 할부 납부가 지출 내역에 추가됐어요');
 }
 
 // 특정 년월에 할부 결제금 계산
@@ -1387,6 +1439,7 @@ function editInst(id) {
   document.getElementById('edit-inst-start').value=inst.start;
   document.getElementById('edit-inst-paid').value=inst.paid||0;
   document.getElementById('edit-fee-wrap').style.display=inst.freeType!=='free'?'block':'none';
+  renderEditInstCatGrid();
   document.getElementById('modal-edit-inst').classList.add('show');
 }
 function toggleEditFeeInput() {
@@ -1404,6 +1457,7 @@ function saveEditInst() {
   inst.fee=getRawVal('edit-inst-fee');
   inst.start=document.getElementById('edit-inst-start').value||inst.start;
   inst.paid=getRawVal('edit-inst-paid');
+  inst.cat=editInstSelCat||inst.cat;
   save(true); closeModal('modal-edit-inst'); renderAll();
   toast('✅ 할부가 수정됐어요');
 }
