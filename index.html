@@ -576,9 +576,17 @@ input[type=number]{-moz-appearance:textfield;}
       <input class="input-field" id="edit-tx-date" type="date">
     </div>
     <div class="input-group">
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
-        <input type="checkbox" id="edit-is-impulse" style="width:16px;height:16px;"> 충동구매
-      </label>
+      <div class="impulse-check">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
+          <input type="checkbox" id="edit-is-impulse" style="width:16px;height:16px;" onchange="toggleEditImpulseReason()"> 충동구매
+        </label>
+        <div id="edit-impulse-reason-wrap" style="display:none;margin-top:8px;">
+          <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;font-weight:700;">왜 샀나요? (솔직하게)</div>
+          <input class="input-field small" id="edit-reason1" placeholder="이유 1" style="margin-bottom:6px;">
+          <input class="input-field small" id="edit-reason2" placeholder="이유 2 (선택)" style="margin-bottom:6px;">
+          <input class="input-field small" id="edit-reason3" placeholder="이유 3 (선택)">
+        </div>
+      </div>
     </div>
     <button class="submit-btn" onclick="saveEditTx()">저장</button>
   </div>
@@ -1370,11 +1378,20 @@ function editTx(id) {
   document.getElementById('edit-tx-name').value=t.name;
   document.getElementById('edit-tx-date').value=t.date;
   document.getElementById('edit-is-impulse').checked=t.impulse||false;
+  document.getElementById('edit-impulse-reason-wrap').style.display=t.impulse?'block':'none';
+  document.getElementById('edit-reason1').value=(t.reasons&&t.reasons[0])||'';
+  document.getElementById('edit-reason2').value=(t.reasons&&t.reasons[1])||'';
+  document.getElementById('edit-reason3').value=(t.reasons&&t.reasons[2])||'';
   document.getElementById('edit-btn-exp').className='type-btn'+(t.type==='expense'?' sel-exp':'');
   document.getElementById('edit-btn-inc').className='type-btn'+(t.type==='income'?' sel-inc':'');
   renderEditCatGrid();
   document.getElementById('modal-edit-tx').classList.add('show');
 }
+function toggleEditImpulseReason() {
+  const checked = document.getElementById('edit-is-impulse').checked;
+  document.getElementById('edit-impulse-reason-wrap').style.display = checked ? 'block' : 'none';
+}
+
 function setEditType(t) {
   editTxType=t;
   document.getElementById('edit-btn-exp').className='type-btn'+(t==='expense'?' sel-exp':'');
@@ -1401,6 +1418,11 @@ function saveEditTx() {
   t.date=document.getElementById('edit-tx-date').value||t.date;
   t.cat=editSelCat||t.cat;
   t.impulse=document.getElementById('edit-is-impulse').checked;
+  t.reasons=[
+    document.getElementById('edit-reason1').value.trim(),
+    document.getElementById('edit-reason2').value.trim(),
+    document.getElementById('edit-reason3').value.trim(),
+  ].filter(Boolean);
   save(true); closeModal('modal-edit-tx'); renderAll();
   toast('✅ 내역이 수정됐어요');
 }
