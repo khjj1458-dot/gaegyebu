@@ -173,6 +173,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 /* 알림 토스트 */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.edit-indicator{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:8px;padding:6px 10px;background:rgba(124,106,247,0.1);border-radius:8px;text-align:center;}
 
 /* 할부 */
 .inst-card{background:rgba(247,195,106,0.06);border:1px solid rgba(247,195,106,0.2);border-radius:14px;padding:14px;margin:0 16px 10px;}
@@ -536,6 +537,136 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div style="font-size:18px;font-weight:900;color:var(--warn)" id="inst-monthly-preview">-</div>
     </div>
     <button class="submit-btn" onclick="addInst()">추가</button>
+  </div>
+</div>
+
+<!-- 카테고리 수정 모달 -->
+<div class="modal-overlay" id="modal-edit-cat">
+  <div class="modal">
+    <div class="modal-title">카테고리 수정 <button class="modal-close" onclick="closeModal('modal-edit-cat')">✕</button></div>
+    <input type="hidden" id="edit-cat-id">
+    <div class="input-group">
+      <label class="input-label">이모지</label>
+      <input class="input-field" id="edit-cat-emoji" type="text" maxlength="2">
+    </div>
+    <div class="input-group">
+      <label class="input-label">카테고리 이름</label>
+      <input class="input-field" id="edit-cat-name" type="text">
+    </div>
+    <div class="input-group">
+      <label class="input-label">월 예산</label>
+      <input class="input-field" id="edit-cat-budget" type="number" inputmode="numeric" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveEditCat()">저장</button>
+  </div>
+</div>
+
+<!-- 내역 수정 모달 -->
+<div class="modal-overlay" id="modal-edit-tx">
+  <div class="modal">
+    <div class="modal-title">내역 수정 <button class="modal-close" onclick="closeModal('modal-edit-tx')">✕</button></div>
+    <div class="edit-indicator">✏️ 수정 모드</div>
+    <input type="hidden" id="edit-tx-id">
+    <div class="type-toggle">
+      <button class="type-btn sel-exp" id="edit-btn-exp" onclick="setEditType('expense')">지출</button>
+      <button class="type-btn" id="edit-btn-inc" onclick="setEditType('income')">수입</button>
+    </div>
+    <div class="input-group">
+      <label class="input-label">금액</label>
+      <input class="input-field" id="edit-tx-amount" type="number" inputmode="numeric">
+    </div>
+    <div class="input-group">
+      <label class="input-label">내용</label>
+      <input class="input-field" id="edit-tx-name" type="text">
+    </div>
+    <div class="input-group">
+      <label class="input-label">카테고리</label>
+      <div class="cat-select-grid" id="edit-cat-sel-grid"></div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">날짜</label>
+      <input class="input-field" id="edit-tx-date" type="date">
+    </div>
+    <div class="input-group">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" id="edit-is-impulse" style="width:16px;height:16px;"> 충동구매
+      </label>
+    </div>
+    <button class="submit-btn" onclick="saveEditTx()">저장</button>
+  </div>
+</div>
+
+<!-- 사고싶다 수정 모달 -->
+<div class="modal-overlay" id="modal-edit-imp">
+  <div class="modal">
+    <div class="modal-title">수정 <button class="modal-close" onclick="closeModal('modal-edit-imp')">✕</button></div>
+    <div class="edit-indicator">✏️ 수정 모드</div>
+    <input type="hidden" id="edit-imp-id">
+    <div class="input-group">
+      <label class="input-label">뭐가 사고 싶어요?</label>
+      <input class="input-field" id="edit-imp-name" type="text">
+    </div>
+    <div class="input-group">
+      <label class="input-label">얼마예요?</label>
+      <input class="input-field" id="edit-imp-price" type="number" inputmode="numeric">
+    </div>
+    <div class="input-group">
+      <label class="input-label">왜 사고 싶어요?</label>
+      <input class="input-field" id="edit-imp-why" type="text">
+    </div>
+    <button class="submit-btn" onclick="saveEditImp()">저장</button>
+  </div>
+</div>
+
+<!-- 할부 수정 모달 -->
+<div class="modal-overlay" id="modal-edit-inst">
+  <div class="modal">
+    <div class="modal-title">할부 수정 <button class="modal-close" onclick="closeModal('modal-edit-inst')">✕</button></div>
+    <div class="edit-indicator">✏️ 수정 모드</div>
+    <input type="hidden" id="edit-inst-id">
+    <div class="input-group">
+      <label class="input-label">상품명</label>
+      <input class="input-field" id="edit-inst-name" type="text">
+    </div>
+    <div class="input-group">
+      <label class="input-label">총 금액</label>
+      <input class="input-field" id="edit-inst-total" type="number" inputmode="numeric">
+    </div>
+    <div class="input-group">
+      <label class="input-label">할부 개월</label>
+      <select class="input-field" id="edit-inst-months">
+        <option value="2">2개월</option><option value="3">3개월</option>
+        <option value="4">4개월</option><option value="5">5개월</option>
+        <option value="6">6개월</option><option value="7">7개월</option>
+        <option value="8">8개월</option><option value="9">9개월</option>
+        <option value="10">10개월</option><option value="12">12개월</option>
+        <option value="18">18개월</option><option value="24">24개월</option>
+        <option value="36">36개월</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">무이자 여부</label>
+      <select class="input-field" id="edit-inst-free-type" onchange="toggleEditFeeInput()">
+        <option value="free">무이자</option>
+        <option value="partial">부분무이자</option>
+        <option value="paid">유이자</option>
+      </select>
+    </div>
+    <div id="edit-fee-wrap" style="display:none">
+      <div class="input-group">
+        <label class="input-label">월 수수료</label>
+        <input class="input-field" id="edit-inst-fee" type="number" inputmode="numeric" placeholder="0">
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">시작월</label>
+      <input class="input-field" id="edit-inst-start" type="month">
+    </div>
+    <div class="input-group">
+      <label class="input-label">납부 완료 회차</label>
+      <input class="input-field" id="edit-inst-paid" type="number" inputmode="numeric" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveEditInst()">저장</button>
   </div>
 </div>
 
@@ -933,17 +1064,18 @@ function renderHome() {
 
 function txItemHtml(t) {
   const c=getCat(t.cat);
-  return `<div class="tx-item" onclick="delTx(${t.id})">
-    <div class="tx-emoji">${c.icon}</div>
-    <div class="tx-info">
+  return `<div class="tx-item">
+    <div class="tx-emoji" onclick="editTx(${t.id})">${c.icon}</div>
+    <div class="tx-info" onclick="editTx(${t.id})">
       <div class="tx-name">${t.name}</div>
       <div class="tx-meta">
         <span>${c.name} · ${t.date}</span>
         ${t.impulse?'<span class="impulse-tag">충동</span>':''}
       </div>
     </div>
-    <div class="tx-right">
-      <div class="tx-amount ${t.type==='income'?'income':''}">${t.type==='income'?'+':''}${fmtF(t.amount)}</div>
+    <div class="tx-right" style="display:flex;align-items:center;gap:8px;">
+      <div class="tx-amount ${t.type==='income'?'income':''}" onclick="editTx(${t.id})">${t.type==='income'?'+':''}${fmtF(t.amount)}</div>
+      <button onclick="delTx(${t.id})" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:4px;">🗑️</button>
     </div>
   </div>`;
 }
@@ -979,7 +1111,10 @@ function renderImpulse() {
     return `<div class="imp-item">
       <div class="imp-header">
         <div><div class="imp-name">${i.name}</div><div class="imp-date">${i.date}</div></div>
-        ${i.price>0?`<div class="imp-price">${fmtF(i.price)}</div>`:''}
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${i.price>0?`<div class="imp-price">${fmtF(i.price)}</div>`:''}
+          <button onclick="editImpulse(${i.id})" style="background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;">✏️</button>
+        </div>
       </div>
       ${i.why?`<div class="imp-memo">"${i.why}"</div>`:''}
       <div class="imp-days ${dayClass}">${dayMsg}</div>
@@ -1137,6 +1272,7 @@ function renderInst() {
         ${inst.freeType!=='free'?`<div style="font-size:10px;color:var(--warn);margin-bottom:8px;">💸 월 수수료 ${fmtF(inst.fee)} 포함</div>`:''}
         <div style="display:flex;gap:8px;">
           <button class="imp-btn buy" style="flex:2" onclick="payInst(${inst.id})">이번달 납부 완료 ✓</button>
+          <button class="imp-btn skip" style="flex:1" onclick="editInst(${inst.id})">✏️ 수정</button>
           <button class="imp-btn skip" style="flex:1" onclick="delInst(${inst.id})">삭제</button>
         </div>
       </div>`;
@@ -1161,6 +1297,134 @@ function renderInst() {
   }
 }
 
+// ── 수정 함수들 ──
+let editTxType = 'expense';
+let editSelCat = '';
+
+// 내역 수정
+function editTx(id) {
+  const t=D.transactions.find(t=>t.id===id);
+  if(!t) return;
+  editTxType=t.type;
+  editSelCat=t.cat;
+  document.getElementById('edit-tx-id').value=id;
+  document.getElementById('edit-tx-amount').value=t.amount;
+  document.getElementById('edit-tx-name').value=t.name;
+  document.getElementById('edit-tx-date').value=t.date;
+  document.getElementById('edit-is-impulse').checked=t.impulse||false;
+  document.getElementById('edit-btn-exp').className='type-btn'+(t.type==='expense'?' sel-exp':'');
+  document.getElementById('edit-btn-inc').className='type-btn'+(t.type==='income'?' sel-inc':'');
+  renderEditCatGrid();
+  document.getElementById('modal-edit-tx').classList.add('show');
+}
+function setEditType(t) {
+  editTxType=t;
+  document.getElementById('edit-btn-exp').className='type-btn'+(t==='expense'?' sel-exp':'');
+  document.getElementById('edit-btn-inc').className='type-btn'+(t==='income'?' sel-inc':'');
+  editSelCat=t==='income'?'salary':(D.categories[0]?.id||'food');
+  renderEditCatGrid();
+}
+function renderEditCatGrid() {
+  const cats=editTxType==='income'?INC_CATS:D.categories;
+  if(!cats.find(c=>c.id===editSelCat)) editSelCat=cats[0]?.id||'';
+  document.getElementById('edit-cat-sel-grid').innerHTML=cats.map(c=>`
+    <div class="cat-sel-btn ${editSelCat===c.id?'selected':''}" onclick="selEditCat('${c.id}')">
+      <div class="icon">${c.icon}</div><div class="name">${c.name}</div>
+    </div>`).join('');
+}
+function selEditCat(id){editSelCat=id;renderEditCatGrid();}
+function saveEditTx() {
+  const id=parseInt(document.getElementById('edit-tx-id').value);
+  const t=D.transactions.find(t=>t.id===id);
+  if(!t) return;
+  t.type=editTxType;
+  t.amount=parseInt(document.getElementById('edit-tx-amount').value)||t.amount;
+  t.name=document.getElementById('edit-tx-name').value.trim()||t.name;
+  t.date=document.getElementById('edit-tx-date').value||t.date;
+  t.cat=editSelCat||t.cat;
+  t.impulse=document.getElementById('edit-is-impulse').checked;
+  save(); closeModal('modal-edit-tx'); renderAll();
+  toast('✅ 내역이 수정됐어요');
+}
+
+// 사고싶다 수정
+function editImpulse(id) {
+  const i=D.impulses.find(i=>i.id===id);
+  if(!i) return;
+  document.getElementById('edit-imp-id').value=id;
+  document.getElementById('edit-imp-name').value=i.name;
+  document.getElementById('edit-imp-price').value=i.price||'';
+  document.getElementById('edit-imp-why').value=i.why||'';
+  document.getElementById('modal-edit-imp').classList.add('show');
+}
+function saveEditImp() {
+  const id=parseInt(document.getElementById('edit-imp-id').value);
+  const i=D.impulses.find(i=>i.id===id);
+  if(!i) return;
+  i.name=document.getElementById('edit-imp-name').value.trim()||i.name;
+  i.price=parseInt(document.getElementById('edit-imp-price').value)||0;
+  i.why=document.getElementById('edit-imp-why').value.trim();
+  save(); closeModal('modal-edit-imp'); renderImpulse();
+  toast('✅ 수정됐어요');
+}
+
+// 할부 수정
+function editInst(id) {
+  const inst=D.installments.find(i=>i.id===id);
+  if(!inst) return;
+  document.getElementById('edit-inst-id').value=id;
+  document.getElementById('edit-inst-name').value=inst.name;
+  document.getElementById('edit-inst-total').value=inst.total;
+  document.getElementById('edit-inst-months').value=inst.months;
+  document.getElementById('edit-inst-free-type').value=inst.freeType||'free';
+  document.getElementById('edit-inst-fee').value=inst.fee||'';
+  document.getElementById('edit-inst-start').value=inst.start;
+  document.getElementById('edit-inst-paid').value=inst.paid||0;
+  document.getElementById('edit-fee-wrap').style.display=inst.freeType!=='free'?'block':'none';
+  document.getElementById('modal-edit-inst').classList.add('show');
+}
+function toggleEditFeeInput() {
+  const t=document.getElementById('edit-inst-free-type').value;
+  document.getElementById('edit-fee-wrap').style.display=t!=='free'?'block':'none';
+}
+function saveEditInst() {
+  const id=parseInt(document.getElementById('edit-inst-id').value);
+  const inst=D.installments.find(i=>i.id===id);
+  if(!inst) return;
+  inst.name=document.getElementById('edit-inst-name').value.trim()||inst.name;
+  inst.total=parseInt(document.getElementById('edit-inst-total').value)||inst.total;
+  inst.months=parseInt(document.getElementById('edit-inst-months').value)||inst.months;
+  inst.freeType=document.getElementById('edit-inst-free-type').value;
+  inst.fee=parseInt(document.getElementById('edit-inst-fee').value)||0;
+  inst.start=document.getElementById('edit-inst-start').value||inst.start;
+  inst.paid=parseInt(document.getElementById('edit-inst-paid').value)||0;
+  save(); closeModal('modal-edit-inst'); renderAll();
+  toast('✅ 할부가 수정됐어요');
+}
+
+// 카테고리 수정
+function editCat(id) {
+  const c=D.categories.find(c=>c.id===id);
+  if(!c) return;
+  document.getElementById('edit-cat-id').value=id;
+  document.getElementById('edit-cat-emoji').value=c.icon;
+  document.getElementById('edit-cat-name').value=c.name;
+  document.getElementById('edit-cat-budget').value=D.budgets[id]||'';
+  document.getElementById('modal-edit-cat').classList.add('show');
+}
+function saveEditCat() {
+  const id=document.getElementById('edit-cat-id').value;
+  const c=D.categories.find(c=>c.id===id);
+  if(!c) return;
+  c.icon=document.getElementById('edit-cat-emoji').value.trim()||c.icon;
+  c.name=document.getElementById('edit-cat-name').value.trim()||c.name;
+  const budget=parseInt(document.getElementById('edit-cat-budget').value)||0;
+  if(budget>0) D.budgets[id]=budget;
+  else delete D.budgets[id];
+  save(); closeModal('modal-edit-cat'); renderAll();
+  toast('✅ 카테고리가 수정됐어요');
+}
+
 function renderSettings() {
   document.getElementById('set-salary').value=D.settings.salary||'';
   document.getElementById('set-card').value=D.settings.card||'';
@@ -1170,6 +1434,7 @@ function renderSettings() {
       <div style="flex:1;font-size:14px;font-weight:700">${c.name}</div>
       <input class="cat-setting-budget" id="budget-cat-${c.id}" type="number" inputmode="numeric"
         value="${D.budgets[c.id]||''}" placeholder="예산 없음">
+      <button class="cat-del-btn" onclick="editCat('${c.id}')" style="margin-right:4px">✏️</button>
       <button class="cat-del-btn" onclick="delCat('${c.id}')">🗑️</button>
     </div>
   `).join('');
