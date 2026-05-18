@@ -224,10 +224,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <div class="mci-val green" id="mc-salary">-</div>
       </div>
       <div class="main-card-item">
-        <div class="mci-label">카드값</div>
-        <div class="mci-val red" id="mc-card">-</div>
-      </div>
-      <div class="main-card-item">
         <div class="mci-label">이번달 지출</div>
         <div class="mci-val red" id="mc-spent">₩0</div>
       </div>
@@ -346,23 +342,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div><div class="header-title">⚙️ 설정</div></div>
   </div>
 
-  <div class="sec">기본 정보</div>
-  <div class="setting-section">
-    <div class="setting-card">
-      <div class="setting-item">
-        <div class="setting-icon">💳</div>
-        <div class="setting-info">
-          <div class="setting-name">이번달 카드값</div>
-          <div class="setting-desc">이번달 빠져나가는 카드값</div>
-        </div>
-        <input class="setting-input" id="set-card" type="number" inputmode="numeric" placeholder="0">
-      </div>
-    </div>
-    <div style="padding:10px 16px;font-size:12px;color:var(--text2);line-height:1.7;">
-      💡 수입은 설정에서 입력하지 않아요.<br>
-      홈/내역 탭에서 + 버튼 → <b style="color:var(--accent3)">수입</b> 으로 월급, 야근수당 등을 직접 입력하면<br>
-      이번달 수입 합계가 자동으로 계산돼요.
-    </div>
+  <div style="margin:0 16px 16px;background:rgba(106,247,194,0.06);border:1px solid rgba(106,247,194,0.2);border-radius:14px;padding:16px;font-size:13px;color:var(--text2);line-height:1.8;">
+    💡 <b style="color:var(--accent3)">수입/지출은 설정 없이 바로 입력해요</b><br>
+    · 월급, 야근수당 → + 버튼 → <b style="color:var(--accent3)">수입</b><br>
+    · 카드값, 생활비 등 → + 버튼 → <b style="color:var(--accent2)">지출</b><br>
+    · 실제 남은 돈 = 수입 합계 - 지출 합계
   </div>
 
   <div class="sec">카테고리 & 예산
@@ -962,7 +946,6 @@ function buyImpulse(id) {
 }
 
 function saveSettings() {
-  D.settings.card=parseInt(document.getElementById('set-card').value)||0;
   D.categories.forEach(c=>{
     const el=document.getElementById('budget-cat-'+c.id);
     if(el) D.budgets[c.id]=parseInt(el.value)||0;
@@ -995,18 +978,16 @@ function renderHome() {
   const txs=getMonthTx();
   const expense=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const income=txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-  const card=D.settings.card||0;
-  const realLeft=income-card-expense;
-  const realBudget=income-card;
+  const realLeft=income-expense;
 
   // 메인 카드
   const rmEl=document.getElementById('real-money');
   if(income>0){
     rmEl.textContent=fmtF(Math.max(realLeft,0));
-    rmEl.className='main-card-amount'+(realLeft<0?' danger':realLeft<realBudget*0.2?' warn':'');
+    rmEl.className='main-card-amount'+(realLeft<0?' danger':realLeft<income*0.2?' warn':'');
     document.getElementById('real-sub').textContent=
-      realLeft<0?`⚠️ 예산 ${fmtF(-realLeft)} 초과!`:
-      realLeft<realBudget*0.2?`⚠️ 얼마 안 남았어요`:
+      realLeft<0?`⚠️ ${fmtF(-realLeft)} 초과!`:
+      realLeft<income*0.2?`⚠️ 얼마 안 남았어요`:
       `${fmtF(expense)} 사용 중`;
   } else {
     rmEl.textContent='수입을 입력해주세요';
@@ -1014,7 +995,6 @@ function renderHome() {
     document.getElementById('real-sub').textContent='+ 버튼으로 이번달 수입을 먼저 입력해요';
   }
   document.getElementById('mc-salary').textContent=income>0?fmtF(income):'-';
-  document.getElementById('mc-card').textContent=card>0?fmtF(card):'-';
   document.getElementById('mc-spent').textContent=fmtF(expense);
 
   // 예산 바
@@ -1421,7 +1401,7 @@ function saveEditCat() {
 }
 
 function renderSettings() {
-  document.getElementById('set-card').value=D.settings.card||'';
+
   document.getElementById('cat-setting-list').innerHTML=D.categories.map(c=>`
     <div class="cat-setting-item">
       <div style="font-size:22px;width:32px;text-align:center">${c.icon}</div>
