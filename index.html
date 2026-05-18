@@ -777,11 +777,14 @@ function loadData() {
   };
 }
 let D = loadData();
-function save() {
+function save(immediate=false) {
   localStorage.setItem('gbv2', JSON.stringify(D));
-  // 디바운스: 1.5초 후 서버 동기화
   clearTimeout(window._syncTimer);
-  window._syncTimer = setTimeout(syncToServer, 1500);
+  if(immediate) {
+    syncToServer();
+  } else {
+    window._syncTimer = setTimeout(syncToServer, 1500);
+  }
 }
 
 let curYear = new Date().getFullYear();
@@ -885,7 +888,7 @@ function addTx() {
     id:Date.now(), type:curType, amount, name, date, cat:selCat,
     impulse:isImpulse, reasons
   });
-  save(); closeModal('modal-tx'); renderAll();
+  save(true); closeModal('modal-tx'); renderAll();
   if(isImpulse) toast('💸 충동구매로 기록됐어요');
   else toast('✅ 내역이 추가됐어요');
 }
@@ -896,7 +899,7 @@ function addImpulse() {
   const why=document.getElementById('imp-why').value.trim();
   if(!name){toast('뭘 사고 싶은지 적어주세요');return;}
   D.impulses.push({id:Date.now(),name,price,why,date:new Date().toISOString().split('T')[0]});
-  save(); closeModal('modal-imp'); renderImpulse();
+  save(true); closeModal('modal-imp'); renderImpulse();
   toast('🛒 사고싶다 목록에 기록됐어요');
 }
 
@@ -910,7 +913,7 @@ function addCat() {
   const color=colors[D.categories.length%colors.length];
   D.categories.push({id,name,icon,color});
   if(budget) D.budgets[id]=budget;
-  save(); closeModal('modal-cat');
+  save(true); closeModal('modal-cat');
   document.getElementById('cat-emoji').value='';
   document.getElementById('cat-new-name').value='';
   document.getElementById('cat-new-budget').value='';
@@ -922,18 +925,18 @@ function delCat(id) {
   if(!confirm('이 카테고리를 삭제할까요?')) return;
   D.categories=D.categories.filter(c=>c.id!==id);
   delete D.budgets[id];
-  save(); renderAll();
+  save(true); renderAll();
 }
 
 function delTx(id) {
   if(!confirm('이 내역을 삭제할까요?')) return;
   D.transactions=D.transactions.filter(t=>t.id!==id);
-  save(); renderAll();
+  save(true); renderAll();
 }
 
 function delImpulse(id) {
   D.impulses=D.impulses.filter(i=>i.id!==id);
-  save(); renderImpulse();
+  save(true); renderImpulse();
 }
 
 function buyImpulse(id) {
@@ -954,7 +957,7 @@ function saveSettings() {
     const el=document.getElementById('budget-cat-'+c.id);
     if(el) D.budgets[c.id]=parseInt(el.value)||0;
   });
-  save(); renderAll();
+  save(true); renderAll();
   toast('✅ 저장됐어요');
 }
 
@@ -1150,21 +1153,21 @@ function addInst() {
     freeType, fee, start,
     paid:0 // 납부 회차
   });
-  save(); closeModal('modal-inst'); renderInst(); renderAll();
+  save(true); closeModal('modal-inst'); renderInst(); renderAll();
   toast('💳 할부가 추가됐어요');
 }
 
 function delInst(id) {
   if(!confirm('이 할부를 삭제할까요?')) return;
   D.installments=D.installments.filter(i=>i.id!==id);
-  save(); renderAll();
+  save(true); renderAll();
 }
 
 function payInst(id) {
   const inst=D.installments.find(i=>i.id===id);
   if(!inst) return;
   inst.paid=Math.min(inst.paid+1, inst.months);
-  save(); renderAll();
+  save(true); renderAll();
 }
 
 // 특정 년월에 할부 결제금 계산
@@ -1339,7 +1342,7 @@ function saveEditTx() {
   t.date=document.getElementById('edit-tx-date').value||t.date;
   t.cat=editSelCat||t.cat;
   t.impulse=document.getElementById('edit-is-impulse').checked;
-  save(); closeModal('modal-edit-tx'); renderAll();
+  save(true); closeModal('modal-edit-tx'); renderAll();
   toast('✅ 내역이 수정됐어요');
 }
 
@@ -1360,7 +1363,7 @@ function saveEditImp() {
   i.name=document.getElementById('edit-imp-name').value.trim()||i.name;
   i.price=getRawVal('edit-imp-price');
   i.why=document.getElementById('edit-imp-why').value.trim();
-  save(); closeModal('modal-edit-imp'); renderImpulse();
+  save(true); closeModal('modal-edit-imp'); renderImpulse();
   toast('✅ 수정됐어요');
 }
 
@@ -1394,7 +1397,7 @@ function saveEditInst() {
   inst.fee=getRawVal('edit-inst-fee');
   inst.start=document.getElementById('edit-inst-start').value||inst.start;
   inst.paid=getRawVal('edit-inst-paid');
-  save(); closeModal('modal-edit-inst'); renderAll();
+  save(true); closeModal('modal-edit-inst'); renderAll();
   toast('✅ 할부가 수정됐어요');
 }
 
@@ -1417,7 +1420,7 @@ function saveEditCat() {
   const budget=getRawVal('edit-cat-budget');
   if(budget>0) D.budgets[id]=budget;
   else delete D.budgets[id];
-  save(); closeModal('modal-edit-cat'); renderAll();
+  save(true); closeModal('modal-edit-cat'); renderAll();
   toast('✅ 카테고리가 수정됐어요');
 }
 
