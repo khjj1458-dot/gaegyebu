@@ -699,8 +699,13 @@ async function loadFromServer() {
       D.installments  = json.installments  || [];
       D.budgets       = json.budgets       || {};
       D.settings      = json.settings      || { salary:0, card:0 };
-      if (json.categories && json.categories.length > 0) D.categories = json.categories;
-      save();
+      // 카테고리: 시트에 2개 초과로 있으면 사용, 없거나 적으면 DEFAULT_CATS 사용
+      if (json.categories && json.categories.length > 2) {
+        D.categories = json.categories;
+      } else {
+        D.categories = DEFAULT_CATS;
+      }
+      save(true);
       renderAll();
       showSyncStatus('ok');
       toast('☁️ 구글 시트에서 불러왔어요');
