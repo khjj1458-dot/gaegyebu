@@ -173,6 +173,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 /* 알림 토스트 */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;}
 .edit-indicator{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:8px;padding:6px 10px;background:rgba(124,106,247,0.1);border-radius:8px;text-align:center;}
 
 /* 할부 */
@@ -385,7 +388,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">금액</label>
-      <input class="input-field" id="tx-amount" type="number" inputmode="numeric" placeholder="0">
+      <input class="input-field" id="tx-amount" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
     </div>
     <div class="input-group">
       <label class="input-label">내용</label>
@@ -427,7 +430,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">얼마예요?</label>
-      <input class="input-field" id="imp-price" type="number" inputmode="numeric" placeholder="0">
+      <input class="input-field" id="imp-price" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
     </div>
     <div class="input-group">
       <label class="input-label">왜 사고 싶어요?</label>
@@ -454,7 +457,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">월 예산 (선택)</label>
-      <input class="input-field" id="cat-new-budget" type="number" inputmode="numeric" placeholder="0">
+      <input class="input-field" id="cat-new-budget" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
     </div>
     <button class="submit-btn" onclick="addCat()">추가</button>
   </div>
@@ -470,7 +473,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">총 금액</label>
-      <input class="input-field" id="inst-total" type="number" inputmode="numeric" placeholder="0" oninput="calcInstMonth()">
+      <input class="input-field" id="inst-total" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0" oninput="calcInstMonth()">
     </div>
     <div class="input-group">
       <label class="input-label">할부 개월</label>
@@ -501,7 +504,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div id="fee-input-wrap" style="display:none">
       <div class="input-group">
         <label class="input-label">월 수수료 금액 (원)</label>
-        <input class="input-field" id="inst-fee" type="number" inputmode="numeric" placeholder="0" oninput="calcInstMonth()">
+        <input class="input-field" id="inst-fee" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0" oninput="calcInstMonth()">
       </div>
     </div>
     <div id="partial-desc-wrap" style="display:none;margin-bottom:12px;">
@@ -536,7 +539,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">월 예산</label>
-      <input class="input-field" id="edit-cat-budget" type="number" inputmode="numeric" placeholder="0">
+      <input class="input-field" id="edit-cat-budget" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
     </div>
     <button class="submit-btn" onclick="saveEditCat()">저장</button>
   </div>
@@ -554,7 +557,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">금액</label>
-      <input class="input-field" id="edit-tx-amount" type="number" inputmode="numeric">
+      <input class="input-field" id="edit-tx-amount" type="text" inputmode="numeric" oninput="fmtInput(this)">
     </div>
     <div class="input-group">
       <label class="input-label">내용</label>
@@ -589,7 +592,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">얼마예요?</label>
-      <input class="input-field" id="edit-imp-price" type="number" inputmode="numeric">
+      <input class="input-field" id="edit-imp-price" type="text" inputmode="numeric" oninput="fmtInput(this)">
     </div>
     <div class="input-group">
       <label class="input-label">왜 사고 싶어요?</label>
@@ -611,7 +614,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">총 금액</label>
-      <input class="input-field" id="edit-inst-total" type="number" inputmode="numeric">
+      <input class="input-field" id="edit-inst-total" type="text" inputmode="numeric" oninput="fmtInput(this)">
     </div>
     <div class="input-group">
       <label class="input-label">할부 개월</label>
@@ -636,7 +639,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div id="edit-fee-wrap" style="display:none">
       <div class="input-group">
         <label class="input-label">월 수수료</label>
-        <input class="input-field" id="edit-inst-fee" type="number" inputmode="numeric" placeholder="0">
+        <input class="input-field" id="edit-inst-fee" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
       </div>
     </div>
     <div class="input-group">
@@ -645,7 +648,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="input-group">
       <label class="input-label">납부 완료 회차</label>
-      <input class="input-field" id="edit-inst-paid" type="number" inputmode="numeric" placeholder="0">
+      <input class="input-field" id="edit-inst-paid" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
     </div>
     <button class="submit-btn" onclick="saveEditInst()">저장</button>
   </div>
@@ -868,7 +871,7 @@ function renderCatSelGrid() {
 function selCatFn(id){selCat=id;renderCatSelGrid();}
 
 function addTx() {
-  const amount=parseInt(document.getElementById('tx-amount').value);
+  const amount=getRawVal('tx-amount');
   const name=document.getElementById('tx-name').value.trim();
   const date=document.getElementById('tx-date').value;
   if(!amount||!name||!date){toast('금액, 내용, 날짜를 입력해주세요');return;}
@@ -889,7 +892,7 @@ function addTx() {
 
 function addImpulse() {
   const name=document.getElementById('imp-name').value.trim();
-  const price=parseInt(document.getElementById('imp-price').value)||0;
+  const price=getRawVal('imp-price');
   const why=document.getElementById('imp-why').value.trim();
   if(!name){toast('뭘 사고 싶은지 적어주세요');return;}
   D.impulses.push({id:Date.now(),name,price,why,date:new Date().toISOString().split('T')[0]});
@@ -900,7 +903,7 @@ function addImpulse() {
 function addCat() {
   const icon=document.getElementById('cat-emoji').value.trim()||'📦';
   const name=document.getElementById('cat-new-name').value.trim();
-  const budget=parseInt(document.getElementById('cat-new-budget').value)||0;
+  const budget=getRawVal('cat-new-budget');
   if(!name){toast('카테고리 이름을 입력해주세요');return;}
   const id='cat_'+Date.now();
   const colors=['#f76a8a','#f7c36a','#6af7c2','#7c6af7','#6ab8f7','#f76af7'];
@@ -1125,9 +1128,9 @@ function toggleFeeInput() {
 }
 
 function calcInstMonth() {
-  const total=parseInt(document.getElementById('inst-total').value)||0;
+  const total=getRawVal('inst-total');
   const months=parseInt(document.getElementById('inst-months').value)||6;
-  const fee=parseInt(document.getElementById('inst-fee').value)||0;
+  const fee=getRawVal('inst-fee');
   const type=document.getElementById('inst-free-type').value;
   if(!total){document.getElementById('inst-monthly-preview').textContent='-';return;}
   const monthly=Math.round(total/months)+(type!=='free'?fee:0);
@@ -1136,10 +1139,10 @@ function calcInstMonth() {
 
 function addInst() {
   const name=document.getElementById('inst-name').value.trim();
-  const total=parseInt(document.getElementById('inst-total').value)||0;
+  const total=getRawVal('inst-total');
   const months=parseInt(document.getElementById('inst-months').value)||6;
   const freeType=document.getElementById('inst-free-type').value;
-  const fee=parseInt(document.getElementById('inst-fee').value)||0;
+  const fee=getRawVal('inst-fee');
   const start=document.getElementById('inst-start').value;
   if(!name||!total||!start){toast('상품명, 금액, 시작월을 입력해주세요');return;}
   D.installments.push({
@@ -1273,6 +1276,23 @@ function renderInst() {
   }
 }
 
+// ── 금액 콤마 포맷 ──
+function fmtInput(el) {
+  let v = el.value.replace(/[^0-9]/g,'');
+  if(v==='') { el.value=''; return; }
+  el.value = parseInt(v).toLocaleString();
+}
+function getRawVal(id) {
+  const el = document.getElementById(id);
+  if(!el) return 0;
+  return parseInt(el.value.replace(/[^0-9]/g,''))||0;
+}
+function setFmtVal(id, num) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.value = num>0 ? num.toLocaleString() : '';
+}
+
 // ── 수정 함수들 ──
 let editTxType = 'expense';
 let editSelCat = '';
@@ -1284,7 +1304,7 @@ function editTx(id) {
   editTxType=t.type;
   editSelCat=t.cat;
   document.getElementById('edit-tx-id').value=id;
-  document.getElementById('edit-tx-amount').value=t.amount;
+  setFmtVal('edit-tx-amount',t.amount);
   document.getElementById('edit-tx-name').value=t.name;
   document.getElementById('edit-tx-date').value=t.date;
   document.getElementById('edit-is-impulse').checked=t.impulse||false;
@@ -1314,7 +1334,7 @@ function saveEditTx() {
   const t=D.transactions.find(t=>t.id===id);
   if(!t) return;
   t.type=editTxType;
-  t.amount=parseInt(document.getElementById('edit-tx-amount').value)||t.amount;
+  t.amount=getRawVal('edit-tx-amount')||t.amount;
   t.name=document.getElementById('edit-tx-name').value.trim()||t.name;
   t.date=document.getElementById('edit-tx-date').value||t.date;
   t.cat=editSelCat||t.cat;
@@ -1329,7 +1349,7 @@ function editImpulse(id) {
   if(!i) return;
   document.getElementById('edit-imp-id').value=id;
   document.getElementById('edit-imp-name').value=i.name;
-  document.getElementById('edit-imp-price').value=i.price||'';
+  setFmtVal('edit-imp-price',i.price);
   document.getElementById('edit-imp-why').value=i.why||'';
   document.getElementById('modal-edit-imp').classList.add('show');
 }
@@ -1338,7 +1358,7 @@ function saveEditImp() {
   const i=D.impulses.find(i=>i.id===id);
   if(!i) return;
   i.name=document.getElementById('edit-imp-name').value.trim()||i.name;
-  i.price=parseInt(document.getElementById('edit-imp-price').value)||0;
+  i.price=getRawVal('edit-imp-price');
   i.why=document.getElementById('edit-imp-why').value.trim();
   save(); closeModal('modal-edit-imp'); renderImpulse();
   toast('✅ 수정됐어요');
@@ -1350,10 +1370,10 @@ function editInst(id) {
   if(!inst) return;
   document.getElementById('edit-inst-id').value=id;
   document.getElementById('edit-inst-name').value=inst.name;
-  document.getElementById('edit-inst-total').value=inst.total;
+  setFmtVal('edit-inst-total',inst.total);
   document.getElementById('edit-inst-months').value=inst.months;
   document.getElementById('edit-inst-free-type').value=inst.freeType||'free';
-  document.getElementById('edit-inst-fee').value=inst.fee||'';
+  setFmtVal('edit-inst-fee',inst.fee);
   document.getElementById('edit-inst-start').value=inst.start;
   document.getElementById('edit-inst-paid').value=inst.paid||0;
   document.getElementById('edit-fee-wrap').style.display=inst.freeType!=='free'?'block':'none';
@@ -1368,12 +1388,12 @@ function saveEditInst() {
   const inst=D.installments.find(i=>i.id===id);
   if(!inst) return;
   inst.name=document.getElementById('edit-inst-name').value.trim()||inst.name;
-  inst.total=parseInt(document.getElementById('edit-inst-total').value)||inst.total;
+  inst.total=getRawVal('edit-inst-total')||inst.total;
   inst.months=parseInt(document.getElementById('edit-inst-months').value)||inst.months;
   inst.freeType=document.getElementById('edit-inst-free-type').value;
-  inst.fee=parseInt(document.getElementById('edit-inst-fee').value)||0;
+  inst.fee=getRawVal('edit-inst-fee');
   inst.start=document.getElementById('edit-inst-start').value||inst.start;
-  inst.paid=parseInt(document.getElementById('edit-inst-paid').value)||0;
+  inst.paid=getRawVal('edit-inst-paid');
   save(); closeModal('modal-edit-inst'); renderAll();
   toast('✅ 할부가 수정됐어요');
 }
@@ -1385,7 +1405,7 @@ function editCat(id) {
   document.getElementById('edit-cat-id').value=id;
   document.getElementById('edit-cat-emoji').value=c.icon;
   document.getElementById('edit-cat-name').value=c.name;
-  document.getElementById('edit-cat-budget').value=D.budgets[id]||'';
+  setFmtVal('edit-cat-budget',D.budgets[id]||0);
   document.getElementById('modal-edit-cat').classList.add('show');
 }
 function saveEditCat() {
@@ -1394,7 +1414,7 @@ function saveEditCat() {
   if(!c) return;
   c.icon=document.getElementById('edit-cat-emoji').value.trim()||c.icon;
   c.name=document.getElementById('edit-cat-name').value.trim()||c.name;
-  const budget=parseInt(document.getElementById('edit-cat-budget').value)||0;
+  const budget=getRawVal('edit-cat-budget');
   if(budget>0) D.budgets[id]=budget;
   else delete D.budgets[id];
   save(); closeModal('modal-edit-cat'); renderAll();
@@ -1407,8 +1427,8 @@ function renderSettings() {
     <div class="cat-setting-item">
       <div style="font-size:22px;width:32px;text-align:center">${c.icon}</div>
       <div style="flex:1;font-size:14px;font-weight:700">${c.name}</div>
-      <input class="cat-setting-budget" id="budget-cat-${c.id}" type="number" inputmode="numeric"
-        value="${D.budgets[c.id]||''}" placeholder="예산 없음">
+      <input class="cat-setting-budget" id="budget-cat-${c.id}" type="text" inputmode="numeric" oninput="fmtInput(this)"
+        value="${D.budgets[c.id]>0?(D.budgets[c.id]).toLocaleString():''}" placeholder="예산 없음">
       <button class="cat-del-btn" onclick="editCat('${c.id}')" style="margin-right:4px">✏️</button>
       <button class="cat-del-btn" onclick="delCat('${c.id}')">🗑️</button>
     </div>
