@@ -699,13 +699,12 @@ async function loadFromServer() {
       D.installments  = json.installments  || [];
       D.budgets       = json.budgets       || {};
       D.settings      = json.settings      || { salary:0, card:0 };
-      // 카테고리: 시트에 2개 초과로 있으면 사용, 없거나 적으면 DEFAULT_CATS 사용
-      if (json.categories && json.categories.length > 2) {
-        D.categories = json.categories;
-      } else {
+      // 카테고리는 로컬 우선 - 로컬에 없을 때만 DEFAULT_CATS 사용
+      if (!D.categories || D.categories.length < 3) {
         D.categories = DEFAULT_CATS;
       }
-      save(true);
+      // 시트 카테고리는 무시 (앱에서 직접 관리)
+      localStorage.setItem('gbv2', JSON.stringify(D)); // 로컬만 저장, 서버 재전송 안 함
       renderAll();
       showSyncStatus('ok');
       toast('☁️ 구글 시트에서 불러왔어요');
@@ -723,8 +722,8 @@ function showSyncStatus(status) {
   const el = document.getElementById('sync-status');
   if (!el) return;
   if (status === 'syncing') { el.textContent = '☁️ 동기화 중...'; el.style.color = 'var(--warn)'; }
-  else if (status === 'ok') { el.textContent = '☁️ 동기화 완료'; el.style.color = 'var(--accent3)'; }
-  else { el.textContent = '⚠️ 동기화 실패'; el.style.color = 'var(--danger)'; }
+  else if (status === 'ok') { el.textContent = '☁️ 탭해서 불러오기'; el.style.color = 'var(--accent3)'; }
+  else { el.textContent = '⚠️ 동기화 실패 - 탭해서 재시도'; el.style.color = 'var(--danger)'; }
 }
 
 // ── 기본 카테고리 ──
@@ -1448,9 +1447,11 @@ function renderSettings() {
 
 // 초기화
 if(Notification.permission==='default') Notification.requestPermission();
+// 카테고리 기본값 보장
+if(!D.categories || D.categories.length < 3) D.categories = DEFAULT_CATS;
 renderAll();
-// 시작할 때 서버에서 최신 데이터 불러오기
-loadFromServer();
+// 시작할 때는 로컬 데이터 사용 (수동으로 동기화 버튼 눌러서 불러오기)
+showSyncStatus('ok');
 </script>
 </body>
 </html>
