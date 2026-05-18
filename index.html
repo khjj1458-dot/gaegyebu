@@ -578,7 +578,7 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="input-group">
       <div class="impulse-check">
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
-          <input type="checkbox" id="edit-is-impulse" style="width:16px;height:16px;" onchange="toggleEditImpulseReason()"> 충동구매
+          <input type="checkbox" id="edit-is-impulse" style="width:16px;height:16px;"> 충동구매
         </label>
         <div id="edit-impulse-reason-wrap" style="display:none;margin-top:8px;">
           <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;font-weight:700;">왜 샀나요? (솔직하게)</div>
@@ -1523,6 +1523,9 @@ function renderSettings() {
 
 // 초기화
 if(Notification.permission==='default') Notification.requestPermission();
+document.getElementById('edit-is-impulse').addEventListener('change', function() {
+  document.getElementById('edit-impulse-reason-wrap').style.display = this.checked ? 'block' : 'none';
+});
 // 카테고리 기본값 보장
 if(!D.categories || D.categories.length < 3) D.categories = DEFAULT_CATS;
 renderAll();
