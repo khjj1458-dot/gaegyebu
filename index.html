@@ -1561,10 +1561,35 @@ function renderCard() {
     return;
   }
   const txs = getMonthTx().filter(t=>t.type==='expense');
+  const now = new Date();
   el.innerHTML = D.cards.map(c => {
-    const spent = txs.filter(t=>String(t.cardId)===String(c.id)).reduce((s,t)=>s+t.amount,0);
-    const pct = c.target>0 ? Math.min(Math.round(spent/c.target*100),100) : 0;
-    const done = c.target>0 && spent>=c.target;
+    // 일시불 지출 (할부 관련 내역 제외)
+    const cardTxs = txs.filter(t=>String(t.cardId)===String(c.id));
+    const instTxs = cardTxs.filter(t=>t.name.includes('할부'));
+    const normalTxs = cardTxs.filter(t=>!t.name.includes('할부'));
+    const normalSpent = normalTxs.reduce((s,t)=>s+t.amount,0);
+
+    // 이번달 추가된 할부 총액 (실적은 할부 총액으로 한번에 잡힘)
+    const cardInsts = D.installments.filter(i=>String(i.cardId)===String(c.id));
+    const thisMonthInsts = cardInsts.filter(i=>{
+      const addDate = i.firstDate || i.start+'-01';
+      return addDate.startsWith(now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'));
+    });
+    const instTotal = thisMonthInsts.reduce((s,i)=>s+i.total,0);
+
+    // 실적 = 일시불 + 이번달 추가 할부 총액
+    const perf = normalSpent + instTotal;
+    const pct = c.target>0 ? Math.min(Math.round(perf/c.target*100),100) : 0;
+    const done = c.target>0 && perf>=c.target;
+
+    // 남은 할부금 (이 카드의 전체 진행중 할부)
+    const activeInsts = cardInsts.filter(i=>i.paid<i.months);
+    const remainTotal = activeInsts.reduce((s,i)=>{
+      const remain=i.months-i.paid;
+      const monthly=Math.round(i.total/i.months)+(i.freeType!=='free'?i.fee:0);
+      return s+remain*monthly;
+    },0);
+
     return `<div class="card-item">
       <div class="card-item-header">
         <div>
@@ -1576,16 +1601,30 @@ function renderCard() {
           <button class="card-item-action" onclick="delCard('${c.id}')">🗑️</button>
         </div>
       </div>
-      <div class="card-spent">${fmtF(spent)}</div>
+      <div class="card-spent">${fmtF(perf)}</div>
       ${c.target>0?`
       <div class="card-progress">
         <div class="card-progress-header">
-          <span class="card-progress-label">실적 ${fmtF(spent)} / ${fmtF(c.target)}</span>
+          <span class="card-progress-label">실적 ${fmtF(perf)} / ${fmtF(c.target)}</span>
           <span class="card-progress-val" style="color:${done?'var(--accent3)':'var(--warn)'}">${pct}%</span>
         </div>
         <div class="card-progress-bar"><div class="card-progress-fill ${done?'done':''}" style="width:${pct}%"></div></div>
       </div>
       <span class="card-badge ${done?'done':'ing'}">${done?'✅ 실적 달성!':'📊 실적 진행 중'}</span>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
+        <div style="background:rgba(128,128,128,0.1);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">일시불</div>
+          <div style="font-size:12px;font-weight:700;">${fmtF(normalSpent)}</div>
+        </div>
+        <div style="background:rgba(124,106,247,0.1);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">할부총액(이번달)</div>
+          <div style="font-size:12px;font-weight:700;color:var(--accent);">${fmtF(instTotal)}</div>
+        </div>
+        <div style="background:rgba(247,106,138,0.1);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">남은할부금</div>
+          <div style="font-size:12px;font-weight:700;color:var(--accent2);">${fmtF(remainTotal)}</div>
+        </div>
+      </div>
       ${c.benefits?`<div class="card-benefits">💡 ${c.benefits}</div>`:''}
     </div>`;
   }).join('');
