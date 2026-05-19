@@ -10,12 +10,19 @@
 :root {
   --bg:#0e0e12; --card:#16161e; --card2:#1e1e28; --border:#2a2a38;
   --accent:#7c6af7; --accent2:#f76a8a; --accent3:#6af7c2;
-  --text:#f0f0f5; --text2:#888; --text3:#555;
+  --text:#f0f0f5; --text2:#aaa; --text3:#777;
   --danger:#f76a6a; --warn:#f7c36a; --good:#6af7a0;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
 
+/* 테마 */
+body.theme-dark { --bg:#0e0e12; --card:#16161e; --card2:#1e1e28; --border:#2a2a38; --text:#f0f0f5; --text2:#aaa; --text3:#777; }
+body.theme-darker { --bg:#060608; --card:#0e0e12; --card2:#16161e; --border:#222230; --text:#f0f0f5; --text2:#aaa; --text3:#777; }
+body.theme-navy { --bg:#0a0f1e; --card:#111827; --card2:#1a2332; --border:#243044; --text:#e8eaf6; --text2:#9aa5be; --text3:#5a6a84; }
+body.theme-purple { --bg:#120e1e; --card:#1a1628; --card2:#221e32; --border:#332a4a; --text:#f0eeff; --text2:#aa9edd; --text3:#776699; }
+body.theme-light { --bg:#f0f2f5; --card:#ffffff; --card2:#f8f9fa; --border:#e0e4ea; --text:#1a1a2e; --text2:#555; --text3:#999; }
+body.theme-warm { --bg:#1a1410; --card:#221c16; --card2:#2a221a; --border:#3a2e22; --text:#f5efe8; --text2:#aa9a88; --text3:#776655; }
 /* 탭바 */
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;}
 .tab{flex:1;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--text3);cursor:pointer;border:none;background:none;transition:color .2s;}
@@ -75,7 +82,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 /* 내역 아이템 */
 .tx-list{padding:0 16px;}
 .tx-group{margin-bottom:14px;}
-.tx-date-label{font-size:10px;color:var(--text3);font-weight:700;margin-bottom:6px;letter-spacing:1px;}
+.tx-date-label{font-size:13px;color:var(--text);font-weight:900;margin-bottom:8px;letter-spacing:0.5px;padding:4px 0;border-bottom:1px solid var(--border);}
 .tx-item{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;cursor:pointer;}
 .tx-emoji{font-size:20px;width:32px;text-align:center;}
 .tx-info{flex:1;min-width:0;}
@@ -328,6 +335,10 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="filter-tab active" id="filter-all" onclick="setTxFilter('all',this)">전체</button>
     <button class="filter-tab income" id="filter-income" onclick="setTxFilter('income',this)">수입</button>
     <button class="filter-tab expense" id="filter-expense" onclick="setTxFilter('expense',this)">지출</button>
+  </div>
+  <div style="padding:0 16px 12px;display:flex;align-items:center;gap:8px;">
+    <input type="date" id="tx-date-filter" class="input-field" style="flex:1;font-size:13px;padding:8px 12px;" onchange="renderTxFull()" placeholder="날짜 선택">
+    <button onclick="clearDateFilter()" style="background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;">전체</button>
   </div>
   <div class="tx-list" id="tx-full"></div>
 </div>
@@ -1262,6 +1273,23 @@ function calcEditTxActual() {
 // ── 카드 관련 ──
 let txFilter = 'all';
 
+function clearDateFilter() {
+  const el = document.getElementById('tx-date-filter');
+  if(el) el.value = '';
+  renderTxFull();
+}
+
+function setTheme(t) {
+  document.body.className = 'theme-' + t;
+  localStorage.setItem('gbTheme', t);
+  // 선택된 버튼 표시
+  document.querySelectorAll('[id^="tbtn-"]').forEach(btn => {
+    btn.style.outline = 'none';
+  });
+  const btn = document.getElementById('tbtn-' + t);
+  if(btn) btn.style.outline = '2px solid var(--accent)';
+}
+
 function setTxFilter(f, el) {
   txFilter = f;
   document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
@@ -1473,6 +1501,8 @@ function renderTxFull() {
   let txs=[...getMonthTx()].sort((a,b)=>b.date.localeCompare(a.date));
   if(txFilter==='income') txs=txs.filter(t=>t.type==='income');
   else if(txFilter==='expense') txs=txs.filter(t=>t.type==='expense');
+  const dateFilter=document.getElementById('tx-date-filter')?.value;
+  if(dateFilter) txs=txs.filter(t=>t.date===dateFilter);
   const el=document.getElementById('tx-full');
   if(txs.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>이번달 내역이 없어요</div>';return;}
   const grouped={};
@@ -1971,6 +2001,9 @@ function renderSettings() {
 
 // 초기화
 if(Notification.permission==='default') Notification.requestPermission();
+// 테마 복원
+const savedTheme = localStorage.getItem('gbTheme') || 'dark';
+setTheme(savedTheme);
 document.getElementById('edit-is-impulse').addEventListener('change', function() {
   document.getElementById('edit-impulse-reason-wrap').style.display = this.checked ? 'block' : 'none';
 });
