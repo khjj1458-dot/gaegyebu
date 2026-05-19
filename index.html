@@ -626,9 +626,23 @@ input[type=number]{-moz-appearance:textfield;}
       <button class="type-btn" id="edit-btn-inc" onclick="setEditType('income')">수입</button>
     </div>
     <div class="input-group">
-      <label class="input-label">금액</label>
-      <input class="input-field" id="edit-tx-amount" type="text" inputmode="numeric" oninput="fmtInput(this)">
+      <label class="input-label">실제 결제 금액</label>
+      <input class="input-field" id="edit-tx-amount" type="text" inputmode="numeric" oninput="fmtInput(this);calcEditTxActual()">
     </div>
+    <div id="edit-tx-discount-section" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div class="input-group" style="margin:0">
+          <label class="input-label">원가</label>
+          <input class="input-field small" id="edit-tx-original" type="text" inputmode="numeric" placeholder="0" oninput="fmtInput(this);calcEditTxActual()">
+        </div>
+        <div class="input-group" style="margin:0">
+          <label class="input-label">할인/포인트</label>
+          <input class="input-field small" id="edit-tx-discount" type="text" inputmode="numeric" placeholder="0" oninput="fmtInput(this);calcEditTxActual()">
+        </div>
+      </div>
+      <div id="edit-tx-actual-preview" style="font-size:12px;color:var(--accent3);margin-bottom:12px;padding:8px;background:rgba(106,247,194,0.06);border-radius:8px;display:none;"></div>
+    </div>
+    <button type="button" onclick="toggleEditTxDiscount()" id="edit-tx-discount-btn" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:6px 12px;font-size:11px;font-family:inherit;cursor:pointer;margin-bottom:12px;">+ 할인/포인트 사용 기록</button>
     <div class="input-group">
       <label class="input-label">내용</label>
       <input class="input-field" id="edit-tx-name" type="text">
@@ -1020,6 +1034,11 @@ function openTxModal() {
   document.getElementById('tx-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('is-impulse').checked=false;
   document.getElementById('impulse-reason-wrap').style.display='none';
+  document.getElementById('tx-discount-section').style.display='none';
+  document.getElementById('tx-discount-btn').textContent='+ 할인/포인트 사용 기록';
+  document.getElementById('tx-original').value='';
+  document.getElementById('tx-discount').value='';
+  document.getElementById('tx-actual-preview').style.display='none';
   document.getElementById('reason1').value='';
   document.getElementById('reason2').value='';
   document.getElementById('reason3').value='';
@@ -1075,9 +1094,12 @@ function addTx() {
     document.getElementById('reason3').value.trim(),
   ].filter(Boolean);
   const cardId = document.getElementById('tx-card')?.value || '';
+  const original = getRawVal('tx-original');
+  const discount = getRawVal('tx-discount');
   D.transactions.push({
     id:Date.now(), type:curType, amount, name, date, cat:selCat,
-    impulse:isImpulse, reasons, cardId
+    impulse:isImpulse, reasons, cardId,
+    original: original||0, discount: discount||0
   });
   save(true); closeModal('modal-tx'); renderAll();
   if(isImpulse) toast('💸 충동구매로 기록됐어요');
@@ -1166,6 +1188,54 @@ function toast(msg, dur=2200) {
 }
 
 // ── 렌더 ──
+// ── 할인/포인트 계산 ──
+function toggleTxDiscount() {
+  const sec = document.getElementById('tx-discount-section');
+  const btn = document.getElementById('tx-discount-btn');
+  const show = sec.style.display === 'none';
+  sec.style.display = show ? 'block' : 'none';
+  btn.textContent = show ? '- 할인/포인트 기록 닫기' : '+ 할인/포인트 사용 기록';
+}
+function toggleEditTxDiscount() {
+  const sec = document.getElementById('edit-tx-discount-section');
+  const btn = document.getElementById('edit-tx-discount-btn');
+  const show = sec.style.display === 'none';
+  sec.style.display = show ? 'block' : 'none';
+  btn.textContent = show ? '- 할인/포인트 기록 닫기' : '+ 할인/포인트 사용 기록';
+}
+function calcTxActual() {
+  const amount = getRawVal('tx-amount');
+  const original = getRawVal('tx-original');
+  const discount = getRawVal('tx-discount');
+  const preview = document.getElementById('tx-actual-preview');
+  if (original > 0 || discount > 0) {
+    preview.style.display = 'block';
+    let txt = '';
+    if (original > 0) txt += `원가 ${fmtF(original)}`;
+    if (discount > 0) txt += (txt?' · ':'') + `할인/포인트 ${fmtF(discount)}`;
+    if (original > 0 && discount > 0) txt += ` → 실제 ${fmtF(original - discount)}`;
+    preview.textContent = '💡 ' + txt;
+  } else {
+    preview.style.display = 'none';
+  }
+}
+function calcEditTxActual() {
+  const amount = getRawVal('edit-tx-amount');
+  const original = getRawVal('edit-tx-original');
+  const discount = getRawVal('edit-tx-discount');
+  const preview = document.getElementById('edit-tx-actual-preview');
+  if (original > 0 || discount > 0) {
+    preview.style.display = 'block';
+    let txt = '';
+    if (original > 0) txt += `원가 ${fmtF(original)}`;
+    if (discount > 0) txt += (txt?' · ':'') + `할인/포인트 ${fmtF(discount)}`;
+    if (original > 0 && discount > 0) txt += ` → 실제 ${fmtF(original - discount)}`;
+    preview.textContent = '💡 ' + txt;
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
 // ── 카드 관련 ──
 let txFilter = 'all';
 
@@ -1366,6 +1436,7 @@ function txItemHtml(t) {
         <span>${c.name} · ${t.date}</span>
         ${t.impulse?'<span class="impulse-tag">충동</span>':''}
         ${t.cardId?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;">${(D.cards.find(cd=>cd.id===t.cardId)||{name:''}).name}</span>`:''}
+        ${t.discount>0?`<span style="font-size:9px;color:var(--accent3);background:rgba(106,247,194,0.1);padding:1px 5px;border-radius:4px;">할인 ${fmtF(t.discount)}</span>`:''}
       </div>
     </div>
     <div class="tx-right" style="display:flex;align-items:center;gap:8px;">
@@ -1694,6 +1765,12 @@ function editTx(id) {
   document.getElementById('edit-is-impulse').checked=t.impulse||false;
   const editCardEl=document.getElementById('edit-tx-card');
   if(editCardEl) editCardEl.value=t.cardId||'';
+  setFmtVal('edit-tx-original', t.original||0);
+  setFmtVal('edit-tx-discount', t.discount||0);
+  const hasDiscount = (t.original||0) > 0 || (t.discount||0) > 0;
+  document.getElementById('edit-tx-discount-section').style.display = hasDiscount ? 'block' : 'none';
+  document.getElementById('edit-tx-discount-btn').textContent = hasDiscount ? '- 할인/포인트 기록 닫기' : '+ 할인/포인트 사용 기록';
+  if(hasDiscount) calcEditTxActual();
   document.getElementById('edit-impulse-reason-wrap').style.display=t.impulse?'block':'none';
   document.getElementById('edit-reason1').value=(t.reasons&&t.reasons[0])||'';
   document.getElementById('edit-reason2').value=(t.reasons&&t.reasons[1])||'';
@@ -1735,6 +1812,8 @@ function saveEditTx() {
   t.cat=editSelCat||t.cat;
   t.impulse=document.getElementById('edit-is-impulse').checked;
   t.cardId=document.getElementById('edit-tx-card')?.value||'';
+  t.original=getRawVal('edit-tx-original');
+  t.discount=getRawVal('edit-tx-discount');
   t.reasons=[
     document.getElementById('edit-reason1').value.trim(),
     document.getElementById('edit-reason2').value.trim(),
