@@ -1741,7 +1741,12 @@ function renderImpulse() {
 function openInstModal() {
   document.getElementById('inst-name').value='';
   document.getElementById('inst-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('inst-card').value='';
+  // 카드 드롭다운 강제 업데이트
+  const instCardEl=document.getElementById('inst-card');
+  if(instCardEl && D.cards && D.cards.length>0) {
+    instCardEl.innerHTML='<option value="">카드 선택 안함</option>'+D.cards.map(c=>`<option value="${c.id}">${c.company} ${c.name}</option>`).join('');
+  }
+  instCardEl.value='';
   document.getElementById('inst-is-impulse').checked=false;
   document.getElementById('inst-impulse-reason-wrap').style.display='none';
   document.getElementById('inst-reason1').value='';
@@ -1841,6 +1846,7 @@ function addInst() {
     discount: 0
   });
   D.installments.find(i=>i.id===instId).paid = 1;
+  D.installments.find(i=>i.id===instId).firstDate = instDate;
   save(true); closeModal('modal-inst'); renderInst(); renderAll();
   toast('💳 할부가 추가되고 1회차 지출이 기록됐어요');
 }
@@ -1849,6 +1855,23 @@ function delInst(id) {
   if(!confirm('이 할부를 삭제할까요?')) return;
   D.installments=D.installments.filter(i=>i.id!==id);
   save(true); renderAll();
+}
+
+function cancelPayInst(id) {
+  const inst=D.installments.find(i=>i.id===id);
+  if(!inst||inst.paid<=0) return;
+  if(!confirm('이번달 납부를 취소할까요?\n지출 내역에서도 해당 할부 내역이 삭제돼요.')) return;
+  inst.paid=Math.max(inst.paid-1, 0);
+  // 관련 지출 내역 삭제 - 가장 최근 할부 내역 찾아서 삭제
+  const keyword = inst.name + ' 할부';
+  const related = D.transactions.filter(t=>t.type==='expense' && t.name.includes(keyword));
+  if(related.length>0) {
+    // 가장 최근 것 삭제
+    const latest = related.reduce((a,b)=>a.date>b.date?a:b);
+    D.transactions = D.transactions.filter(t=>t.id!==latest.id);
+  }
+  save(true); renderAll();
+  toast('↩ 납부가 취소됐어요');
 }
 
 function payInst(id) {
@@ -1957,6 +1980,9 @@ function renderInst() {
         </div>
         ${inst.freeType!=='free'?`<div style="font-size:10px;color:var(--warn);margin-bottom:8px;">💸 월 수수료 ${fmtF(inst.fee)} 포함</div>`:''}
         <div style="display:flex;gap:8px;">
+          ${inst.paid>0
+            ? `<button class="imp-btn skip" style="flex:1;color:var(--warn);background:rgba(247,195,106,0.1);" onclick="cancelPayInst(${inst.id})">↩ 납부취소</button>`
+            : ''}
           <button class="imp-btn buy" style="flex:2" onclick="payInst(${inst.id})">이번달 납부 완료 ✓</button>
           <button class="imp-btn skip" style="flex:1" onclick="editInst(${inst.id})">✏️ 수정</button>
           <button class="imp-btn skip" style="flex:1" onclick="delInst(${inst.id})">삭제</button>
@@ -2124,9 +2150,9 @@ function editInst(id) {
   document.getElementById('edit-inst-reason3').value=(inst.reasons&&inst.reasons[2])||'';
   renderEditInstCatGrid();
   // 월 결제금 미리보기
-  // 납부일 세팅 (오늘 날짜 기본값)
+  // 납부일 세팅 (저장된 날짜 or 오늘)
   const editInstDateEl = document.getElementById('edit-inst-date');
-  if(editInstDateEl) editInstDateEl.value = new Date().toISOString().split('T')[0];
+  if(editInstDateEl) editInstDateEl.value = inst.firstDate || new Date().toISOString().split('T')[0];
   setTimeout(calcEditInstMonth, 100);
   document.getElementById('modal-edit-inst').classList.add('show');
 }
@@ -2158,6 +2184,19 @@ function saveEditInst() {
   inst.paid=getRawVal('edit-inst-paid');
   inst.cat=editInstSelCat||inst.cat;
   inst.cardId=document.getElementById('edit-inst-card')?.value||'';
+  const newDate=document.getElementById('edit-inst-date')?.value;
+  if(newDate) {
+    // 날짜 변경 시 관련 지출 내역도 수정
+    const keyword=inst.name+' 할부';
+    if(newDate!==inst.firstDate) {
+      const related=D.transactions.filter(t=>t.type==='expense'&&t.name.includes(keyword));
+      if(related.length>0) {
+        const latest=related.reduce((a,b)=>a.date>b.date?a:b);
+        latest.date=newDate;
+      }
+    }
+    inst.firstDate=newDate;
+  }
   inst.impulse=document.getElementById('edit-inst-is-impulse').checked;
   inst.reasons=[
     document.getElementById('edit-inst-reason1').value.trim(),
