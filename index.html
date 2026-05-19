@@ -17,12 +17,14 @@
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
 
 /* 테마 */
-body.theme-dark { --bg:#0e0e12; --card:#16161e; --card2:#1e1e28; --border:#2a2a38; --text:#f0f0f5; --text2:#aaa; --text3:#777; }
-body.theme-darker { --bg:#060608; --card:#0e0e12; --card2:#16161e; --border:#222230; --text:#f0f0f5; --text2:#aaa; --text3:#777; }
-body.theme-navy { --bg:#0a0f1e; --card:#111827; --card2:#1a2332; --border:#243044; --text:#e8eaf6; --text2:#9aa5be; --text3:#5a6a84; }
-body.theme-purple { --bg:#120e1e; --card:#1a1628; --card2:#221e32; --border:#332a4a; --text:#f0eeff; --text2:#aa9edd; --text3:#776699; }
-body.theme-light { --bg:#f0f2f5; --card:#ffffff; --card2:#f8f9fa; --border:#e0e4ea; --text:#1a1a2e; --text2:#555; --text3:#999; }
-body.theme-warm { --bg:#1a1410; --card:#221c16; --card2:#2a221a; --border:#3a2e22; --text:#f5efe8; --text2:#aa9a88; --text3:#776655; }
+body.theme-dark    { --bg:#0e0e12; --card:#16161e; --card2:#1e1e28; --border:#2a2a38; --text:#f0f0f5; --text2:#aaa; --text3:#666; }
+body.theme-darker  { --bg:#000000; --card:#0a0a0a; --card2:#111111; --border:#1e1e1e; --text:#f5f5f5; --text2:#999; --text3:#555; }
+body.theme-navy    { --bg:#0d1b2a; --card:#1b2d40; --card2:#233550; --border:#2e4560; --text:#e8f0fe; --text2:#8faac8; --text3:#4d6a88; }
+body.theme-purple  { --bg:#1a0e2e; --card:#251640; --card2:#301e52; --border:#42286e; --text:#f0e8ff; --text2:#b89ee0; --text3:#7855aa; }
+body.theme-light   { --bg:#f5f6fa; --card:#ffffff; --card2:#f0f2f8; --border:#dde1ee; --text:#1a1d2e; --text2:#5a6080; --text3:#9fa5c0; }
+body.theme-warm    { --bg:#fdf6ee; --card:#ffffff; --card2:#fef9f4; --border:#e8d8c4; --text:#2d1f0e; --text2:#8a6a4a; --text3:#b89a7a; }
+body.theme-green   { --bg:#0a1a0f; --card:#112018; --card2:#182e20; --border:#1e4028; --text:#e8f5e9; --text2:#7ab890; --text3:#3d7a52; }
+body.theme-rose    { --bg:#1a0a10; --card:#251018; --card2:#301520; --border:#4a1e2c; --text:#ffe8ee; --text2:#d08898; --text3:#944455; }
 /* 탭바 */
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;}
 .tab{flex:1;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--text3);cursor:pointer;border:none;background:none;transition:color .2s;}
@@ -181,6 +183,26 @@ body.theme-warm { --bg:#1a1410; --card:#221c16; --card2:#2a221a; --border:#3a2e2
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
 
+/* 커스텀 달력 */
+.cal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.cal-overlay.show{display:flex;}
+.cal-box{background:var(--card);border-radius:20px;padding:20px;width:320px;max-width:90vw;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-title{font-size:16px;font-weight:900;}
+.cal-nav{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;}
+.cal-weekday{text-align:center;font-size:11px;color:var(--text3);font-weight:700;padding:4px 0;}
+.cal-weekday:first-child{color:#f76a8a;}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-day{text-align:center;padding:8px 2px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:background .15s;}
+.cal-day:hover{background:var(--card2);}
+.cal-day.today{color:var(--accent);font-weight:900;}
+.cal-day.selected{background:var(--accent);color:white;font-weight:900;}
+.cal-day.other-month{color:var(--text3);}
+.cal-day.sunday{color:#f76a8a;}
+.cal-day.empty{cursor:default;}
+.cal-confirm{width:100%;margin-top:14px;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+
 /* 필터 탭 */
 .filter-tabs{display:flex;gap:8px;padding:0 16px 12px;}
 .filter-tab{flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);color:var(--text2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;text-align:center;}
@@ -337,7 +359,7 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="filter-tab expense" id="filter-expense" onclick="setTxFilter('expense',this)">지출</button>
   </div>
   <div style="padding:0 16px 12px;display:flex;align-items:center;gap:8px;">
-    <input type="date" id="tx-date-filter" class="input-field" style="flex:1;font-size:13px;padding:8px 12px;" onchange="renderTxFull()" placeholder="날짜 선택">
+    <input type="text" id="tx-date-filter" class="input-field" style="flex:1;font-size:13px;padding:8px 12px;cursor:pointer;" readonly placeholder="날짜 선택" onclick="openCal('tx-date-filter', this.value)">
     <button onclick="clearDateFilter()" style="background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;">전체</button>
   </div>
   <div class="tx-list" id="tx-full"></div>
@@ -401,13 +423,15 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 
   <div class="sec">테마</div>
-  <div style="padding:0 16px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-    <button onclick="setTheme('dark')" id="tbtn-dark" style="background:#0e0e12;border:2px solid #2a2a38;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f0f0f5;font-size:12px;font-family:inherit;font-weight:700;">🌑 다크</button>
-    <button onclick="setTheme('darker')" id="tbtn-darker" style="background:#060608;border:2px solid #222230;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f0f0f5;font-size:12px;font-family:inherit;font-weight:700;">⬛ 블랙</button>
-    <button onclick="setTheme('navy')" id="tbtn-navy" style="background:#0a0f1e;border:2px solid #243044;border-radius:12px;padding:14px 6px;cursor:pointer;color:#e8eaf6;font-size:12px;font-family:inherit;font-weight:700;">🌊 네이비</button>
-    <button onclick="setTheme('purple')" id="tbtn-purple" style="background:#120e1e;border:2px solid #332a4a;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f0eeff;font-size:12px;font-family:inherit;font-weight:700;">💜 퍼플</button>
-    <button onclick="setTheme('warm')" id="tbtn-warm" style="background:#1a1410;border:2px solid #3a2e22;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f5efe8;font-size:12px;font-family:inherit;font-weight:700;">🍂 웜</button>
-    <button onclick="setTheme('light')" id="tbtn-light" style="background:#f0f2f5;border:2px solid #e0e4ea;border-radius:12px;padding:14px 6px;cursor:pointer;color:#1a1a2e;font-size:12px;font-family:inherit;font-weight:700;">☀️ 라이트</button>
+  <div style="padding:0 16px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+    <button onclick="setTheme('dark')" id="tbtn-dark" style="background:#0e0e12;border:2px solid #2a2a38;border-radius:12px;padding:12px 4px;cursor:pointer;color:#f0f0f5;font-size:11px;font-family:inherit;font-weight:700;">🌑<br>다크</button>
+    <button onclick="setTheme('darker')" id="tbtn-darker" style="background:#000;border:2px solid #1e1e1e;border-radius:12px;padding:12px 4px;cursor:pointer;color:#f5f5f5;font-size:11px;font-family:inherit;font-weight:700;">⬛<br>블랙</button>
+    <button onclick="setTheme('navy')" id="tbtn-navy" style="background:#0d1b2a;border:2px solid #2e4560;border-radius:12px;padding:12px 4px;cursor:pointer;color:#e8f0fe;font-size:11px;font-family:inherit;font-weight:700;">🌊<br>네이비</button>
+    <button onclick="setTheme('purple')" id="tbtn-purple" style="background:#1a0e2e;border:2px solid #42286e;border-radius:12px;padding:12px 4px;cursor:pointer;color:#f0e8ff;font-size:11px;font-family:inherit;font-weight:700;">💜<br>퍼플</button>
+    <button onclick="setTheme('light')" id="tbtn-light" style="background:#f5f6fa;border:2px solid #dde1ee;border-radius:12px;padding:12px 4px;cursor:pointer;color:#1a1d2e;font-size:11px;font-family:inherit;font-weight:700;">☀️<br>라이트</button>
+    <button onclick="setTheme('warm')" id="tbtn-warm" style="background:#fdf6ee;border:2px solid #e8d8c4;border-radius:12px;padding:12px 4px;cursor:pointer;color:#2d1f0e;font-size:11px;font-family:inherit;font-weight:700;">🍂<br>웜</button>
+    <button onclick="setTheme('green')" id="tbtn-green" style="background:#0a1a0f;border:2px solid #1e4028;border-radius:12px;padding:12px 4px;cursor:pointer;color:#e8f5e9;font-size:11px;font-family:inherit;font-weight:700;">🌿<br>그린</button>
+    <button onclick="setTheme('rose')" id="tbtn-rose" style="background:#1a0a10;border:2px solid #4a1e2c;border-radius:12px;padding:12px 4px;cursor:pointer;color:#ffe8ee;font-size:11px;font-family:inherit;font-weight:700;">🌹<br>로즈</button>
   </div>
 
   <div style="margin:0 16px 16px;background:rgba(106,247,194,0.06);border:1px solid rgba(106,247,194,0.2);border-radius:14px;padding:16px;font-size:13px;color:var(--text2);line-height:1.8;">
@@ -480,7 +504,7 @@ input[type=number]{-moz-appearance:textfield;}
     </div>
     <div class="input-group">
       <label class="input-label">날짜</label>
-      <input class="input-field" id="tx-date" type="date">
+      <input class="input-field" id="tx-date" type="text" readonly placeholder="날짜 선택" onclick="openCal('tx-date', this.value)" style="cursor:pointer;">
     </div>
     <div class="input-group" id="tx-card-wrap">
       <label class="input-label">사용 카드 (선택)</label>
@@ -614,7 +638,7 @@ input[type=number]{-moz-appearance:textfield;}
     </div>
     <div class="input-group">
       <label class="input-label">첫 납부일 (지출 내역에 기록될 날짜)</label>
-      <input class="input-field" id="inst-date" type="date">
+      <input class="input-field" id="inst-date" type="text" readonly placeholder="날짜 선택" onclick="openCal('inst-date', this.value)" style="cursor:pointer;">
     </div>
     <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px;margin-bottom:12px;" id="inst-preview">
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">📊 월 결제금 미리보기</div>
@@ -694,7 +718,7 @@ input[type=number]{-moz-appearance:textfield;}
     </div>
     <div class="input-group">
       <label class="input-label">날짜</label>
-      <input class="input-field" id="edit-tx-date" type="date">
+      <input class="input-field" id="edit-tx-date" type="text" readonly placeholder="날짜 선택" onclick="openCal('edit-tx-date', this.value)" style="cursor:pointer;">
     </div>
     <div class="input-group">
       <label class="input-label">사용 카드 (선택)</label>
@@ -868,6 +892,25 @@ input[type=number]{-moz-appearance:textfield;}
       <input class="input-field" id="card-fee" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
     </div>
     <button class="submit-btn" onclick="saveCard()">저장</button>
+  </div>
+</div>
+
+<!-- 커스텀 달력 -->
+<div class="cal-overlay" id="cal-overlay" onclick="calOverlayClick(event)">
+  <div class="cal-box" onclick="event.stopPropagation()">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calMove(-1)">‹</button>
+      <div class="cal-title" id="cal-title"></div>
+      <button class="cal-nav" onclick="calMove(1)">›</button>
+    </div>
+    <div class="cal-weekdays">
+      <div class="cal-weekday">일</div><div class="cal-weekday">월</div>
+      <div class="cal-weekday">화</div><div class="cal-weekday">수</div>
+      <div class="cal-weekday">목</div><div class="cal-weekday">금</div>
+      <div class="cal-weekday">토</div>
+    </div>
+    <div class="cal-days" id="cal-days"></div>
+    <button class="cal-confirm" onclick="calConfirm()">확인</button>
   </div>
 </div>
 
@@ -1284,6 +1327,74 @@ function calcEditTxActual() {
   } else {
     preview.style.display = 'none';
   }
+}
+
+// ── 커스텀 달력 ──
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calSelected = '';
+let calTargetId = '';
+let calCallback = null;
+
+function openCal(targetInputId, defaultVal, callback) {
+  calTargetId = targetInputId;
+  calCallback = callback || null;
+  const d = defaultVal ? new Date(defaultVal) : new Date();
+  calYear = d.getFullYear();
+  calMonth = d.getMonth();
+  calSelected = defaultVal || new Date().toISOString().split('T')[0];
+  renderCal();
+  document.getElementById('cal-overlay').classList.add('show');
+}
+
+function calOverlayClick(e) {
+  if(e.target === document.getElementById('cal-overlay')) closeCal();
+}
+function closeCal() { document.getElementById('cal-overlay').classList.remove('show'); }
+
+function calMove(d) {
+  calMonth += d;
+  if(calMonth < 0) { calMonth = 11; calYear--; }
+  if(calMonth > 11) { calMonth = 0; calYear++; }
+  renderCal();
+}
+
+function renderCal() {
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-title').textContent = calYear + '년 ' + months[calMonth];
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const lastDate = new Date(calYear, calMonth+1, 0).getDate();
+  const today = new Date().toISOString().split('T')[0];
+  let html = '';
+  // 빈칸
+  for(let i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+  for(let d=1; d<=lastDate; d++) {
+    const dateStr = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const isSun = (firstDay + d - 1) % 7 === 0;
+    const isToday = dateStr === today;
+    const isSel = dateStr === calSelected;
+    html += `<div class="cal-day${isSun?' sunday':''}${isToday?' today':''}${isSel?' selected':''}" onclick="calSelect('${dateStr}')">${d}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML = html;
+}
+
+function calSelect(dateStr) {
+  calSelected = dateStr;
+  renderCal();
+}
+
+function calConfirm() {
+  if(!calSelected) return;
+  // 타겟 input에 값 설정
+  if(calTargetId) {
+    const el = document.getElementById(calTargetId);
+    if(el) el.value = calSelected;
+  }
+  // 콜백 실행
+  if(calCallback) calCallback(calSelected);
+  closeCal();
+  // 날짜 필터면 내역 새로고침
+  if(calTargetId === 'tx-date-filter') renderTxFull();
 }
 
 // ── 카드 관련 ──
