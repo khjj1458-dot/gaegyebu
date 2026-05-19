@@ -1587,10 +1587,15 @@ function renderCard() {
 
     // 일시불/할부 분리
     const cardTxs = txs.filter(t=>String(t.cardId)===String(c.id));
-    const instTxs = cardTxs.filter(t=>t.name.includes('할부'));
-    const normalTxs = cardTxs.filter(t=>!t.name.includes('할부'));
+    const instTxs = cardTxs.filter(t=>t.name&&t.name.includes('할부'));
+    const normalTxs = cardTxs.filter(t=>!t.name||!t.name.includes('할부'));
     const normalSpent = normalTxs.reduce((s,t)=>s+t.amount,0);
-    const instPayment = instTxs.reduce((s,t)=>s+t.amount,0);
+    // 이번달 이 카드로 등록된 할부의 납부 내역 - cardId 기준으로 D.installments와 매칭
+    const cardInstIds = D.installments.filter(i=>String(i.cardId)===String(c.id)).map(i=>i.name);
+    const instPayment = txs.filter(t=>
+      t.name && t.name.includes('할부') &&
+      (String(t.cardId)===String(c.id) || cardInstIds.some(n=>t.name.startsWith(n)))
+    ).reduce((s,t)=>s+t.amount,0);
 
     // 선택 월에 추가된 할부 총액
     const cardInsts = D.installments.filter(i=>String(i.cardId)===String(c.id));
