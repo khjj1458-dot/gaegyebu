@@ -1648,8 +1648,12 @@ function renderCard() {
           <div style="font-size:14px;font-weight:700;">${fmtF(normalSpent)}</div>
         </div>
         <div style="background:rgba(124,106,247,0.08);border-radius:8px;padding:10px;">
-          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">📋 총 할부금 (이번달 신규)</div>
-          <div style="font-size:14px;font-weight:700;color:var(--accent);">${fmtF(instTotal)}</div>
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">📋 총 할부금 / 이번달 신규</div>
+          <div style="font-size:14px;font-weight:700;color:var(--accent);">
+            ${fmtF(activeInsts.reduce((s,i)=>s+i.total,0))}
+            <span style="font-size:11px;color:var(--text3);font-weight:500;"> / </span>
+            <span style="font-size:13px;color:var(--accent);">${fmtF(instTotal)}</span>
+          </div>
           <div style="margin-top:4px;">${instListHtml}</div>
         </div>
         <div style="background:rgba(247,195,106,0.08);border-radius:8px;padding:10px;">
