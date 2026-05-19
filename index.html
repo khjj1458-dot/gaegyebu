@@ -42,16 +42,16 @@ body.theme-rose    { --bg:#1a0a10; --card:#251018; --card2:#301520; --border:#4a
 .month-label{font-size:14px;font-weight:700;min-width:65px;text-align:center;}
 
 /* 홈 - 실제 쓸 수 있는 돈 카드 */
-.main-card{margin:0 16px 12px;background:linear-gradient(135deg,#1e1a3a,#2a1a2e);border:1px solid var(--accent);border-radius:20px;padding:20px;}
+.main-card{margin:0 16px 12px;background:linear-gradient(135deg,rgba(124,106,247,0.15),rgba(247,106,138,0.1));border:1px solid var(--accent);border-radius:20px;padding:20px;}
 .main-card-label{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
 .main-card-amount{font-size:36px;font-weight:900;color:var(--text);margin-bottom:4px;}
 .main-card-amount.danger{color:var(--danger);}
 .main-card-amount.warn{color:var(--warn);}
 .main-card-sub{font-size:12px;color:var(--text2);}
 .main-card-row{display:flex;gap:10px;margin-top:14px;}
-.main-card-item{flex:1;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;}
-.mci-label{font-size:10px;color:var(--text3);margin-bottom:4px;}
-.mci-val{font-size:14px;font-weight:700;}
+.main-card-item{flex:1;background:rgba(128,128,128,0.1);border-radius:10px;padding:10px;}
+.mci-label{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.mci-val{font-size:14px;font-weight:700;color:var(--text);}
 .mci-val.red{color:var(--accent2);}
 .mci-val.green{color:var(--accent3);}
 
@@ -422,18 +422,17 @@ input[type=number]{-moz-appearance:textfield;}
     <div><div class="header-title">⚙️ 설정</div></div>
   </div>
 
-  <div class="sec">테마</div>
-  <div style="padding:0 16px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-    <button onclick="setTheme('dark')" id="tbtn-dark" style="background:#0e0e12;border:2px solid #2a2a38;border-radius:12px;padding:12px 4px;cursor:pointer;color:#f0f0f5;font-size:11px;font-family:inherit;font-weight:700;">🌑<br>다크</button>
-    <button onclick="setTheme('darker')" id="tbtn-darker" style="background:#000;border:2px solid #1e1e1e;border-radius:12px;padding:12px 4px;cursor:pointer;color:#f5f5f5;font-size:11px;font-family:inherit;font-weight:700;">⬛<br>블랙</button>
-    <button onclick="setTheme('light')" id="tbtn-light" style="background:#f5f6fa;border:2px solid #d8dce8;border-radius:12px;padding:12px 4px;cursor:pointer;color:#1a1d2e;font-size:11px;font-family:inherit;font-weight:700;">☀️<br>라이트</button>
-    <button onclick="setTheme('warm')" id="tbtn-warm" style="background:#fdf6ee;border:2px solid #e8d8c4;border-radius:12px;padding:12px 4px;cursor:pointer;color:#2d1f0e;font-size:11px;font-family:inherit;font-weight:700;">🍂<br>웜</button>
-    <button onclick="setTheme('pastel_blue')" id="tbtn-pastel_blue" style="background:#e8f0fe;border:2px solid #b8ccf5;border-radius:12px;padding:12px 4px;cursor:pointer;color:#1a2a4a;font-size:11px;font-family:inherit;font-weight:700;">🩵<br>파스텔블루</button>
-    <button onclick="setTheme('pastel_purple')" id="tbtn-pastel_purple" style="background:#f0e8ff;border:2px solid #c8aaee;border-radius:12px;padding:12px 4px;cursor:pointer;color:#2a1a4a;font-size:11px;font-family:inherit;font-weight:700;">💜<br>파스텔퍼플</button>
-    <button onclick="setTheme('pastel_green')" id="tbtn-pastel_green" style="background:#e8f5e9;border:2px solid #a8d8aa;border-radius:12px;padding:12px 4px;cursor:pointer;color:#1a3a1e;font-size:11px;font-family:inherit;font-weight:700;">🌿<br>파스텔그린</button>
-    <button onclick="setTheme('pastel_pink')" id="tbtn-pastel_pink" style="background:#fce8f0;border:2px solid #eaaac4;border-radius:12px;padding:12px 4px;cursor:pointer;color:#3a1a2a;font-size:11px;font-family:inherit;font-weight:700;">🌸<br>파스텔핑크</button>
-    <button onclick="setTheme('pastel_yellow')" id="tbtn-pastel_yellow" style="background:#fffde8;border:2px solid #e8dca0;border-radius:12px;padding:12px 4px;cursor:pointer;color:#2a2400;font-size:11px;font-family:inherit;font-weight:700;">🌼<br>파스텔옐로</button>
-    <button onclick="setTheme('pastel_mint')" id="tbtn-pastel_mint" style="background:#e8faf5;border:2px solid #90ddc0;border-radius:12px;padding:12px 4px;cursor:pointer;color:#0a2a22;font-size:11px;font-family:inherit;font-weight:700;">🍃<br>파스텔민트</button>
+  <div class="setting-section">
+    <div class="setting-card">
+      <div class="setting-item" onclick="openThemeModal()" style="cursor:pointer;">
+        <div class="setting-icon">🎨</div>
+        <div class="setting-info">
+          <div class="setting-name">테마 & 배경색</div>
+          <div class="setting-desc" id="current-theme-name">현재: 다크</div>
+        </div>
+        <div style="color:var(--text3);font-size:18px;">›</div>
+      </div>
+    </div>
   </div>
 
   <div style="margin:0 16px 16px;background:rgba(106,247,194,0.06);border:1px solid rgba(106,247,194,0.2);border-radius:14px;padding:16px;font-size:13px;color:var(--text2);line-height:1.8;">
@@ -913,6 +912,25 @@ input[type=number]{-moz-appearance:textfield;}
     </div>
     <div class="cal-days" id="cal-days"></div>
     <button class="cal-confirm" onclick="calConfirm()">확인</button>
+  </div>
+</div>
+
+<!-- 테마 모달 -->
+<div class="modal-overlay" id="modal-theme">
+  <div class="modal" style="padding-bottom:30px;">
+    <div class="modal-title">테마 선택 <button class="modal-close" onclick="closeModal('modal-theme')">✕</button></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <button onclick="setTheme('dark');closeModal('modal-theme')" id="tbtn-dark" style="background:#0e0e12;border:2px solid #2a2a38;border-radius:14px;padding:16px 4px;cursor:pointer;color:#f0f0f5;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🌑<br><span style="font-size:10px;">다크</span></button>
+      <button onclick="setTheme('darker');closeModal('modal-theme')" id="tbtn-darker" style="background:#000;border:2px solid #1e1e1e;border-radius:14px;padding:16px 4px;cursor:pointer;color:#f5f5f5;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">⬛<br><span style="font-size:10px;">블랙</span></button>
+      <button onclick="setTheme('light');closeModal('modal-theme')" id="tbtn-light" style="background:#f5f6fa;border:2px solid #d8dce8;border-radius:14px;padding:16px 4px;cursor:pointer;color:#1a1d2e;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">☀️<br><span style="font-size:10px;">라이트</span></button>
+      <button onclick="setTheme('warm');closeModal('modal-theme')" id="tbtn-warm" style="background:#fdf6ee;border:2px solid #e8d8c4;border-radius:14px;padding:16px 4px;cursor:pointer;color:#2d1f0e;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🍂<br><span style="font-size:10px;">웜</span></button>
+      <button onclick="setTheme('pastel_blue');closeModal('modal-theme')" id="tbtn-pastel_blue" style="background:#e8f0fe;border:2px solid #b8ccf5;border-radius:14px;padding:16px 4px;cursor:pointer;color:#1a2a4a;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🩵<br><span style="font-size:10px;">파스텔블루</span></button>
+      <button onclick="setTheme('pastel_purple');closeModal('modal-theme')" id="tbtn-pastel_purple" style="background:#f0e8ff;border:2px solid #c8aaee;border-radius:14px;padding:16px 4px;cursor:pointer;color:#2a1a4a;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">💜<br><span style="font-size:10px;">파스텔퍼플</span></button>
+      <button onclick="setTheme('pastel_green');closeModal('modal-theme')" id="tbtn-pastel_green" style="background:#e8f5e9;border:2px solid #a8d8aa;border-radius:14px;padding:16px 4px;cursor:pointer;color:#1a3a1e;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🌿<br><span style="font-size:10px;">파스텔그린</span></button>
+      <button onclick="setTheme('pastel_pink');closeModal('modal-theme')" id="tbtn-pastel_pink" style="background:#fce8f0;border:2px solid #eaaac4;border-radius:14px;padding:16px 4px;cursor:pointer;color:#3a1a2a;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🌸<br><span style="font-size:10px;">파스텔핑크</span></button>
+      <button onclick="setTheme('pastel_yellow');closeModal('modal-theme')" id="tbtn-pastel_yellow" style="background:#fffde8;border:2px solid #e8dca0;border-radius:14px;padding:16px 4px;cursor:pointer;color:#2a2400;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🌼<br><span style="font-size:10px;">파스텔옐로</span></button>
+      <button onclick="setTheme('pastel_mint');closeModal('modal-theme')" id="tbtn-pastel_mint" style="background:#e8faf5;border:2px solid #90ddc0;border-radius:14px;padding:16px 4px;cursor:pointer;color:#0a2a22;font-size:12px;font-family:inherit;font-weight:700;text-align:center;">🍃<br><span style="font-size:10px;">파스텔민트</span></button>
+    </div>
   </div>
 </div>
 
@@ -1421,6 +1439,12 @@ const THEMES = {
   pastel_mint:  {bg:'#e8faf5',card:'#f4fdfb',card2:'#d0f5ea',border:'#90ddc0',text:'#0a2a22',text2:'#307060',text3:'#70aaa0'},
 };
 
+const THEME_NAMES = {dark:'다크',darker:'블랙',light:'라이트',warm:'웜',pastel_blue:'파스텔블루',pastel_purple:'파스텔퍼플',pastel_green:'파스텔그린',pastel_pink:'파스텔핑크',pastel_yellow:'파스텔옐로',pastel_mint:'파스텔민트'};
+
+function openThemeModal() {
+  document.getElementById('modal-theme').classList.add('show');
+}
+
 function setTheme(t) {
   const th = THEMES[t] || THEMES.dark;
   const root = document.documentElement;
@@ -1438,6 +1462,8 @@ function setTheme(t) {
     document.querySelectorAll('[id^="tbtn-"]').forEach(btn => btn.style.outline = 'none');
     const btn = document.getElementById('tbtn-' + t);
     if(btn) btn.style.outline = '3px solid #7c6af7';
+    const nameEl = document.getElementById('current-theme-name');
+    if(nameEl) nameEl.textContent = '현재: ' + (THEME_NAMES[t]||t);
   } catch(e) {}
 }
 
