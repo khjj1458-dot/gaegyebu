@@ -813,6 +813,11 @@ let syncing = false;
 
 async function syncToServer() {
   if (syncing) { window._pendingSync = true; return; }
+  // 안전장치: 로컬 데이터가 비어있으면 서버에 저장 안 함
+  if (!D.transactions || D.transactions.length === 0) {
+    showSyncStatus('ok');
+    return;
+  }
   syncing = true;
   window._pendingSync = false;
   showSyncStatus('syncing');
@@ -825,6 +830,7 @@ async function syncToServer() {
       budgets: D.budgets,
       categories: D.categories,
       settings: D.settings,
+      cards: D.cards,
     });
     const res = await fetch(SERVER_URL, { method: 'POST', body: payload });
     const json = await res.json();
@@ -843,17 +849,22 @@ async function loadFromServer() {
     const res = await fetch(SERVER_URL + '?action=getAll');
     const json = await res.json();
     if (json.transactions !== undefined) {
-      // 서버 데이터가 있으면 사용, 없으면 로컬 유지
-      if (json.transactions.length > 0 || D.transactions.length === 0)
-        D.transactions = json.transactions || [];
-      if (json.impulses.length > 0 || D.impulses.length === 0)
+      // 서버 데이터가 충분히 있을 때만 덮어씌움 (5개 이상)
+      if (json.transactions.length >= 5) {
+        D.transactions = json.transactions;
+      } else if (json.transactions.length > 0 && D.transactions.length === 0) {
+        D.transactions = json.transactions;
+      }
+      if (json.impulses && (json.impulses.length > 0 || D.impulses.length === 0))
         D.impulses = json.impulses || [];
       if (json.installments && (json.installments.length > 0 || D.installments.length === 0))
         D.installments = json.installments || [];
-      if (Object.keys(json.budgets||{}).length > 0)
+      if (json.budgets && Object.keys(json.budgets||{}).length > 0)
         D.budgets = json.budgets;
       if (json.settings && Object.keys(json.settings).length > 0)
         D.settings = json.settings;
+      if (json.cards && (json.cards.length > 0 || D.cards.length === 0))
+        D.cards = json.cards || [];
       // 카테고리는 로컬 우선
       if (!D.categories || D.categories.length < 3) {
         D.categories = DEFAULT_CATS;
