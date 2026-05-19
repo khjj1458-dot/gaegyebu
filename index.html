@@ -1375,7 +1375,7 @@ function renderCard() {
 function renderAll() {
   const mk=curYear+'년 '+(curMonth+1)+'월';
   ['ml1','ml2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mk;});
-  renderHome(); renderTxFull(); renderImpulse(); renderInst(); renderCard(); renderSettings();
+  renderCard(); renderHome(); renderTxFull(); renderImpulse(); renderInst(); renderSettings();
 }
 
 function renderHome() {
@@ -1450,7 +1450,7 @@ function txItemHtml(t) {
       <div class="tx-meta">
         <span>${c.name} · ${t.date}</span>
         ${t.impulse?'<span class="impulse-tag">충동</span>':''}
-        ${t.cardId?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;">${(D.cards.find(cd=>cd.id===t.cardId)||{name:''}).name}</span>`:''}
+        ${t.cardId&&D.cards&&D.cards.length>0?(()=>{const cd=D.cards.find(cd=>cd.id===t.cardId);return cd?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;">${cd.name}</span>`:''})():''}
         ${t.discount>0?`<span style="font-size:9px;color:var(--accent3);background:rgba(106,247,194,0.1);padding:1px 5px;border-radius:4px;">할인 ${fmtF(t.discount)}</span>`:''}
       </div>
     </div>
