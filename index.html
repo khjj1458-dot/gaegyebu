@@ -400,6 +400,16 @@ input[type=number]{-moz-appearance:textfield;}
     <div><div class="header-title">⚙️ 설정</div></div>
   </div>
 
+  <div class="sec">테마</div>
+  <div style="padding:0 16px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+    <button onclick="setTheme('dark')" id="tbtn-dark" style="background:#0e0e12;border:2px solid #2a2a38;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f0f0f5;font-size:12px;font-family:inherit;font-weight:700;">🌑 다크</button>
+    <button onclick="setTheme('darker')" id="tbtn-darker" style="background:#060608;border:2px solid #222230;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f0f0f5;font-size:12px;font-family:inherit;font-weight:700;">⬛ 블랙</button>
+    <button onclick="setTheme('navy')" id="tbtn-navy" style="background:#0a0f1e;border:2px solid #243044;border-radius:12px;padding:14px 6px;cursor:pointer;color:#e8eaf6;font-size:12px;font-family:inherit;font-weight:700;">🌊 네이비</button>
+    <button onclick="setTheme('purple')" id="tbtn-purple" style="background:#120e1e;border:2px solid #332a4a;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f0eeff;font-size:12px;font-family:inherit;font-weight:700;">💜 퍼플</button>
+    <button onclick="setTheme('warm')" id="tbtn-warm" style="background:#1a1410;border:2px solid #3a2e22;border-radius:12px;padding:14px 6px;cursor:pointer;color:#f5efe8;font-size:12px;font-family:inherit;font-weight:700;">🍂 웜</button>
+    <button onclick="setTheme('light')" id="tbtn-light" style="background:#f0f2f5;border:2px solid #e0e4ea;border-radius:12px;padding:14px 6px;cursor:pointer;color:#1a1a2e;font-size:12px;font-family:inherit;font-weight:700;">☀️ 라이트</button>
+  </div>
+
   <div style="margin:0 16px 16px;background:rgba(106,247,194,0.06);border:1px solid rgba(106,247,194,0.2);border-radius:14px;padding:16px;font-size:13px;color:var(--text2);line-height:1.8;">
     💡 <b style="color:var(--accent3)">수입/지출은 설정 없이 바로 입력해요</b><br>
     · 월급, 야근수당 → + 버튼 → <b style="color:var(--accent3)">수입</b><br>
@@ -778,6 +788,12 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="input-group">
       <label class="input-label">시작월</label>
       <input class="input-field" id="edit-inst-start" type="month">
+    </div>
+    <div class="input-group">
+      <label class="input-label">사용 카드 (선택)</label>
+      <select class="input-field" id="edit-inst-card">
+        <option value="">카드 선택 안함</option>
+      </select>
     </div>
     <div class="input-group">
       <label class="input-label">납부 완료 회차</label>
@@ -1282,12 +1298,13 @@ function clearDateFilter() {
 function setTheme(t) {
   document.body.className = 'theme-' + t;
   localStorage.setItem('gbTheme', t);
-  // 선택된 버튼 표시
-  document.querySelectorAll('[id^="tbtn-"]').forEach(btn => {
-    btn.style.outline = 'none';
-  });
-  const btn = document.getElementById('tbtn-' + t);
-  if(btn) btn.style.outline = '2px solid var(--accent)';
+  try {
+    document.querySelectorAll('[id^="tbtn-"]').forEach(btn => {
+      btn.style.outline = 'none';
+    });
+    const btn = document.getElementById('tbtn-' + t);
+    if(btn) btn.style.outline = '2px solid var(--accent)';
+  } catch(e) {}
 }
 
 function setTxFilter(f, el) {
