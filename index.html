@@ -1406,15 +1406,34 @@ function clearDateFilter() {
   renderTxFull();
 }
 
+const THEMES = {
+  dark:   {bg:'#0e0e12',card:'#16161e',card2:'#1e1e28',border:'#2a2a38',text:'#f0f0f5',text2:'#aaa',text3:'#666'},
+  darker: {bg:'#000000',card:'#0a0a0a',card2:'#111111',border:'#1e1e1e',text:'#f5f5f5',text2:'#999',text3:'#555'},
+  navy:   {bg:'#0d1b2a',card:'#1b2d40',card2:'#233550',border:'#2e4560',text:'#e8f0fe',text2:'#8faac8',text3:'#4d6a88'},
+  purple: {bg:'#1a0e2e',card:'#251640',card2:'#301e52',border:'#42286e',text:'#f0e8ff',text2:'#b89ee0',text3:'#7855aa'},
+  light:  {bg:'#f5f6fa',card:'#ffffff',card2:'#f0f2f8',border:'#dde1ee',text:'#1a1d2e',text2:'#5a6080',text3:'#9fa5c0'},
+  warm:   {bg:'#fdf6ee',card:'#ffffff',card2:'#fef9f4',border:'#e8d8c4',text:'#2d1f0e',text2:'#8a6a4a',text3:'#b89a7a'},
+  green:  {bg:'#0a1a0f',card:'#112018',card2:'#182e20',border:'#1e4028',text:'#e8f5e9',text2:'#7ab890',text3:'#3d7a52'},
+  rose:   {bg:'#1a0a10',card:'#251018',card2:'#301520',border:'#4a1e2c',text:'#ffe8ee',text2:'#d08898',text3:'#944455'},
+};
+
 function setTheme(t) {
-  document.body.className = 'theme-' + t;
+  const th = THEMES[t] || THEMES.dark;
+  const root = document.documentElement;
+  root.style.setProperty('--bg', th.bg);
+  root.style.setProperty('--card', th.card);
+  root.style.setProperty('--card2', th.card2);
+  root.style.setProperty('--border', th.border);
+  root.style.setProperty('--text', th.text);
+  root.style.setProperty('--text2', th.text2);
+  root.style.setProperty('--text3', th.text3);
+  document.body.style.background = th.bg;
+  document.body.style.color = th.text;
   localStorage.setItem('gbTheme', t);
   try {
-    document.querySelectorAll('[id^="tbtn-"]').forEach(btn => {
-      btn.style.outline = 'none';
-    });
+    document.querySelectorAll('[id^="tbtn-"]').forEach(btn => btn.style.outline = 'none');
     const btn = document.getElementById('tbtn-' + t);
-    if(btn) btn.style.outline = '2px solid var(--accent)';
+    if(btn) btn.style.outline = '3px solid #7c6af7';
   } catch(e) {}
 }
 
