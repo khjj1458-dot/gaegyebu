@@ -586,6 +586,12 @@ input[type=number]{-moz-appearance:textfield;}
       <input class="input-field" id="inst-start" type="month">
     </div>
     <div class="input-group">
+      <label class="input-label">사용 카드 (선택)</label>
+      <select class="input-field" id="inst-card">
+        <option value="">카드 선택 안함</option>
+      </select>
+    </div>
+    <div class="input-group">
       <label class="input-label">첫 납부일 (지출 내역에 기록될 날짜)</label>
       <input class="input-field" id="inst-date" type="date">
     </div>
@@ -843,7 +849,7 @@ input[type=number]{-moz-appearance:textfield;}
 
 <script>
 // ── 서버 연동 ──
-const SERVER_URL = 'https://script.google.com/macros/s/AKfycbxD2mTQd3oPnQmWfX_39EDOkiRvMb_fD8biYtPphaZxTKSX5iKucI1NbfKfHn-9usE/exec';
+const SERVER_URL = 'https://script.google.com/macros/s/AKfycbyNTPJrpedS123Je4ny1UP4gx-7w3k7lRr1eAtFzROjGlq4jb-ZQG9b86S8PDR8_WHS/exec';
 let syncing = false;
 
 async function syncToServer() {
@@ -1368,7 +1374,7 @@ function renderCard() {
 
   // 카드 선택 드롭다운 업데이트
   const opts = '<option value="">카드 선택 안함</option>' + D.cards.map(c=>`<option value="${c.id}">${c.company} ${c.name}</option>`).join('');
-  ['tx-card','edit-tx-card'].forEach(id=>{
+  ['tx-card','edit-tx-card','inst-card','edit-inst-card'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.innerHTML=opts;
   });
@@ -1515,6 +1521,7 @@ function renderImpulse() {
 function openInstModal() {
   document.getElementById('inst-name').value='';
   document.getElementById('inst-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('inst-card').value='';
   document.getElementById('inst-is-impulse').checked=false;
   document.getElementById('inst-impulse-reason-wrap').style.display='none';
   document.getElementById('inst-reason1').value='';
@@ -1588,12 +1595,14 @@ function addInst() {
   ].filter(Boolean);
   const instId = Date.now();
   const instMonthly = Math.round(total/months) + (freeType!=='free'?fee:0);
+  const instCardId = document.getElementById('inst-card')?.value||'';
   D.installments.push({
     id:instId, name, total, months,
     freeType, fee, start,
     cat: instSelCat,
     impulse: instIsImpulse,
     reasons: instReasons,
+    cardId: instCardId,
     paid:0
   });
   // 첫 달 지출 내역 자동 추가
@@ -1606,7 +1615,10 @@ function addInst() {
     date: instDate,
     cat: instSelCat,
     impulse: instIsImpulse,
-    reasons: instReasons
+    reasons: instReasons,
+    cardId: instCardId,
+    original: 0,
+    discount: 0
   });
   D.installments.find(i=>i.id===instId).paid = 1;
   save(true); closeModal('modal-inst'); renderInst(); renderAll();
@@ -1633,7 +1645,10 @@ function payInst(id) {
     date: new Date().toISOString().split('T')[0],
     cat: inst.cat || 'cardpay',
     impulse: inst.impulse||false,
-    reasons: inst.reasons||[]
+    reasons: inst.reasons||[],
+    cardId: inst.cardId||'',
+    original: 0,
+    discount: 0
   });
   save(true); renderAll();
   toast('💳 할부 납부가 지출 내역에 추가됐어요');
@@ -1696,7 +1711,7 @@ function renderInst() {
       return `<div class="inst-card">
         <div class="inst-header">
           <div>
-            <div class="inst-name">${inst.name}${inst.impulse?'<span class="impulse-tag" style="margin-left:6px;">충동</span>':''}</div>
+            <div class="inst-name">${inst.name}${inst.impulse?'<span class="impulse-tag" style="margin-left:6px;">충동</span>':''}${inst.cardId?(()=>{const cd=D.cards.find(cd=>String(cd.id)===String(inst.cardId));return cd?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;margin-left:4px;">${cd.name}</span>`:''})():''}</div>
             <div style="font-size:10px;color:var(--text3);margin-top:2px">${inst.start} ~ ${endStr}</div>
           </div>
           <span class="inst-badge ${badgeCls[inst.freeType]}">${badgeMap[inst.freeType]}</span>
@@ -1877,6 +1892,12 @@ function editInst(id) {
   document.getElementById('edit-inst-paid').value=inst.paid||0;
   document.getElementById('edit-fee-wrap').style.display=inst.freeType!=='free'?'block':'none';
   document.getElementById('edit-inst-is-impulse').checked=inst.impulse||false;
+  // 카드 선택
+  const editInstCardEl=document.getElementById('edit-inst-card');
+  if(editInstCardEl) {
+    const cardOpt=Array.from(editInstCardEl.options).find(o=>String(o.value)===String(inst.cardId||''));
+    editInstCardEl.value=cardOpt?cardOpt.value:'';
+  }
   document.getElementById('edit-inst-impulse-reason-wrap').style.display=inst.impulse?'block':'none';
   document.getElementById('edit-inst-reason1').value=(inst.reasons&&inst.reasons[0])||'';
   document.getElementById('edit-inst-reason2').value=(inst.reasons&&inst.reasons[1])||'';
@@ -1900,6 +1921,7 @@ function saveEditInst() {
   inst.start=document.getElementById('edit-inst-start').value||inst.start;
   inst.paid=getRawVal('edit-inst-paid');
   inst.cat=editInstSelCat||inst.cat;
+  inst.cardId=document.getElementById('edit-inst-card')?.value||'';
   inst.impulse=document.getElementById('edit-inst-is-impulse').checked;
   inst.reasons=[
     document.getElementById('edit-inst-reason1').value.trim(),
