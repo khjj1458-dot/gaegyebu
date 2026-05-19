@@ -898,8 +898,10 @@ async function loadFromServer() {
         D.budgets = json.budgets;
       if (json.settings && Object.keys(json.settings).length > 0)
         D.settings = json.settings;
-      if (json.cards && (json.cards.length > 0 || D.cards.length === 0))
-        D.cards = json.cards || [];
+      // 카드: 서버에 있으면 사용, 없으면 로컬 유지
+      if (json.cards && json.cards.length > 0)
+        D.cards = json.cards;
+      if (!D.cards) D.cards = [];
       // 카테고리는 로컬 우선
       if (!D.categories || D.categories.length < 3) {
         D.categories = DEFAULT_CATS;
