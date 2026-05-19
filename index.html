@@ -1097,10 +1097,11 @@ function renderCatSelGrid() {
 function selCatFn(id){selCat=id;renderCatSelGrid();}
 
 function addTx() {
-  const amount=getRawVal('tx-amount');
+  const amount = getRawVal('tx-amount');
+  // 0원도 허용 (포인트 전액 사용 등)
   const name=document.getElementById('tx-name').value.trim();
   const date=document.getElementById('tx-date').value;
-  if(!amount||!name||!date){toast('금액, 내용, 날짜를 입력해주세요');return;}
+  if(amount===undefined||amount===null||isNaN(amount)||amount<0||!name||!date){toast('금액, 내용, 날짜를 입력해주세요');return;}
   const isImpulse=document.getElementById('is-impulse').checked;
   const reasons=[
     document.getElementById('reason1').value.trim(),
@@ -1754,7 +1755,9 @@ function fmtInput(el) {
 function getRawVal(id) {
   const el = document.getElementById(id);
   if(!el) return 0;
-  return parseInt(el.value.replace(/[^0-9]/g,''))||0;
+  const v = el.value.replace(/[^0-9]/g,'');
+  if(v==='') return 0;
+  return parseInt(v);
 }
 function setFmtVal(id, num) {
   const el = document.getElementById(id);
