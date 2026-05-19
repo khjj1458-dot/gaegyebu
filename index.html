@@ -1664,6 +1664,16 @@ function renderCard() {
         <div style="background:rgba(247,195,106,0.08);border-radius:8px;padding:10px;">
           <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">📅 이번달 할부 납부금</div>
           <div style="font-size:14px;font-weight:700;color:var(--warn);">${fmtF(instPayment)}</div>
+          <div style="margin-top:6px;">
+            ${txs.filter(t=>
+              t.name && t.name.includes('할부') &&
+              (String(t.cardId)===String(c.id) || cardInstIds.some(n=>t.name.startsWith(n)))
+            ).map(t=>`
+              <div style="font-size:10px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;">
+                <span>· ${t.name}</span>
+                <span style="color:var(--warn);font-weight:700;">${fmtF(t.amount)}</span>
+              </div>`).join('') || '<div style="font-size:10px;color:var(--text3);">없음</div>'}
+          </div>
         </div>
         <div style="background:rgba(247,106,138,0.08);border-radius:8px;padding:10px;">
           <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">💸 남은 할부금</div>
