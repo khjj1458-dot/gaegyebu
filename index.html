@@ -1325,7 +1325,7 @@ function delCard(id) {
 function getCardSpent(cardId) {
   const card = D.cards.find(c=>c.id===cardId);
   if (!card) return 0;
-  const txs = getMonthTx().filter(t=>t.type==='expense' && t.cardId===cardId);
+  const txs = getMonthTx().filter(t=>t.type==='expense' && String(t.cardId)===String(cardId));
   return txs.reduce((s,t)=>s+t.amount,0);
 }
 
@@ -1338,7 +1338,7 @@ function renderCard() {
   }
   const txs = getMonthTx().filter(t=>t.type==='expense');
   el.innerHTML = D.cards.map(c => {
-    const spent = txs.filter(t=>t.cardId===c.id).reduce((s,t)=>s+t.amount,0);
+    const spent = txs.filter(t=>String(t.cardId)===String(c.id)).reduce((s,t)=>s+t.amount,0);
     const pct = c.target>0 ? Math.min(Math.round(spent/c.target*100),100) : 0;
     const done = c.target>0 && spent>=c.target;
     return `<div class="card-item">
@@ -1452,7 +1452,7 @@ function txItemHtml(t) {
       <div class="tx-meta">
         <span>${c.name} · ${t.date}</span>
         ${t.impulse?'<span class="impulse-tag">충동</span>':''}
-        ${t.cardId&&D.cards&&D.cards.length>0?(()=>{const cd=D.cards.find(cd=>cd.id===t.cardId);return cd?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;">${cd.name}</span>`:''})():''}
+        ${t.cardId&&D.cards&&D.cards.length>0?(()=>{const cd=D.cards.find(cd=>String(cd.id)===String(t.cardId));return cd?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;">${cd.name}</span>`:''})():''}
         ${t.discount>0?`<span style="font-size:9px;color:var(--accent3);background:rgba(106,247,194,0.1);padding:1px 5px;border-radius:4px;">할인 ${fmtF(t.discount)}</span>`:''}
       </div>
     </div>
@@ -1783,7 +1783,7 @@ function editTx(id) {
   document.getElementById('edit-tx-date').value=t.date;
   document.getElementById('edit-is-impulse').checked=t.impulse||false;
   const editCardEl=document.getElementById('edit-tx-card');
-  if(editCardEl) editCardEl.value=t.cardId||'';
+  if(editCardEl) { const cardOpt = Array.from(editCardEl.options).find(o=>String(o.value)===String(t.cardId)); if(cardOpt) editCardEl.value=cardOpt.value; else editCardEl.value=''; }
   setFmtVal('edit-tx-original', t.original||0);
   setFmtVal('edit-tx-discount', t.discount||0);
   const hasDiscount = (t.original||0) > 0 || (t.discount||0) > 0;
