@@ -781,11 +781,15 @@ input[type=number]{-moz-appearance:textfield;}
       </select>
     </div>
     <div class="input-group">
-      <label class="input-label">전월 실적 기산일 (결제일 기준 전달 며칠부터)</label>
-      <select class="input-field" id="card-startday">
-        <option value="1">매월 1일 ~ 말일</option>
-        <option value="결제일-1">결제일 전날 기준</option>
-      </select>
+      <label class="input-label">전월 실적 기산일</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:13px;color:var(--text2);white-space:nowrap;">매월</span>
+        <input class="input-field" id="card-startday" type="number" inputmode="numeric" min="1" max="31" placeholder="1" style="width:80px;text-align:center;">
+        <span style="font-size:13px;color:var(--text2);white-space:nowrap;">일 ~ 다음달</span>
+        <input class="input-field" id="card-endday" type="number" inputmode="numeric" min="1" max="31" placeholder="말일" style="width:80px;text-align:center;">
+        <span style="font-size:13px;color:var(--text2);white-space:nowrap;">일</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">예: 전월 15일~당월 14일이면 15 ~ 14 입력</div>
     </div>
     <div class="input-group">
       <label class="input-label">주요 혜택 (간단히)</label>
@@ -804,7 +808,7 @@ input[type=number]{-moz-appearance:textfield;}
 
 <script>
 // ── 서버 연동 ──
-const SERVER_URL = 'https://script.google.com/macros/s/AKfycbyp38fcAOX-fG0AjK45K7Ska2dsHLD79MnOqAIWVT65FsokT8pqTz30JIxYJ-_QOQEK/exec';
+const SERVER_URL = 'https://script.google.com/macros/s/AKfycbylmVNa20d3gzUmcBmFNLu0PD6yEwZiMq7RMKZ6bEjUUpJXltgIrgMVE1jOaEssLm92/exec';
 let syncing = false;
 
 async function syncToServer() {
@@ -1165,6 +1169,7 @@ function openCardModal(id) {
     setFmtVal('card-target', c.target||0);
     document.getElementById('card-payday').value = c.payday||'15';
     document.getElementById('card-startday').value = c.startday||'1';
+    document.getElementById('card-endday').value = c.endday||'';
     document.getElementById('card-benefits').value = c.benefits||'';
     setFmtVal('card-fee', c.fee||0);
   } else {
@@ -1173,6 +1178,7 @@ function openCardModal(id) {
     document.getElementById('card-target').value='';
     document.getElementById('card-payday').value='15';
     document.getElementById('card-startday').value='1';
+    document.getElementById('card-endday').value='';
     document.getElementById('card-benefits').value='';
     document.getElementById('card-fee').value='';
   }
@@ -1189,7 +1195,8 @@ function saveCard() {
     company: document.getElementById('card-company').value,
     target: getRawVal('card-target'),
     payday: parseInt(document.getElementById('card-payday').value),
-    startday: document.getElementById('card-startday').value,
+    startday: document.getElementById('card-startday').value||'1',
+    endday: document.getElementById('card-endday').value||'',
     benefits: document.getElementById('card-benefits').value.trim(),
     fee: getRawVal('card-fee'),
   };
@@ -1233,7 +1240,7 @@ function renderCard() {
       <div class="card-item-header">
         <div>
           <div class="card-item-name">${c.company} ${c.name}</div>
-          <div class="card-cycle">결제일: 매월 ${c.payday}일</div>
+          <div class="card-cycle">결제일: 매월 ${c.payday}일 · 실적기간: ${c.startday||1}일~${c.endday?c.endday+'일':'말일'}</div>
         </div>
         <div class="card-item-actions">
           <button class="card-item-action" onclick="openCardModal('${c.id}')">✏️</button>
