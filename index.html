@@ -811,7 +811,7 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="cat-select-grid" id="edit-inst-cat-grid"></div>
     </div>
     <div class="input-group">
-      <label class="input-label">시작월</label>
+      <label class="input-label">시작월 (첫 결제월)</label>
       <input class="input-field" id="edit-inst-start" type="month">
     </div>
     <div class="input-group">
@@ -823,6 +823,10 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="input-group">
       <label class="input-label">납부 완료 회차</label>
       <input class="input-field" id="edit-inst-paid" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">📊 월 결제금</div>
+      <div style="font-size:18px;font-weight:900;color:var(--warn)" id="edit-inst-monthly-preview">-</div>
     </div>
     <div class="impulse-check" style="margin-bottom:12px;">
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
@@ -2110,6 +2114,10 @@ function editInst(id) {
   document.getElementById('edit-inst-reason2').value=(inst.reasons&&inst.reasons[1])||'';
   document.getElementById('edit-inst-reason3').value=(inst.reasons&&inst.reasons[2])||'';
   renderEditInstCatGrid();
+  // 월 결제금 미리보기
+  const editMonthly = Math.round(inst.total/inst.months) + (inst.freeType!=='free'?inst.fee:0);
+  const previewEl = document.getElementById('edit-inst-monthly-preview');
+  if(previewEl) previewEl.textContent = fmtF(editMonthly) + '/월';
   document.getElementById('modal-edit-inst').classList.add('show');
 }
 function toggleEditFeeInput() {
