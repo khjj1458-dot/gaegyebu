@@ -358,9 +358,14 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="filter-tab income" id="filter-income" onclick="setTxFilter('income',this)">수입</button>
     <button class="filter-tab expense" id="filter-expense" onclick="setTxFilter('expense',this)">지출</button>
   </div>
-  <div style="padding:0 16px 12px;display:flex;align-items:center;gap:8px;">
+  <div style="padding:0 16px 6px;display:flex;align-items:center;gap:8px;">
     <input type="text" id="tx-date-filter" class="input-field" style="flex:1;font-size:13px;padding:8px 12px;cursor:pointer;" readonly placeholder="날짜 선택" onclick="openCal('tx-date-filter', this.value)">
     <button onclick="clearDateFilter()" style="background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;">전체</button>
+  </div>
+  <div style="padding:0 16px 12px;">
+    <select id="tx-card-filter" class="input-field" style="font-size:13px;padding:8px 12px;" onchange="renderTxFull()">
+      <option value="">💳 전체 카드</option>
+    </select>
   </div>
   <div class="tx-list" id="tx-full"></div>
 </div>
@@ -387,8 +392,13 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="header-title">💳 카드 관리</div>
       <div class="header-sub">카드별 실적 및 혜택 관리</div>
     </div>
+    <div class="month-nav">
+      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+      <div class="month-label" id="ml-card"></div>
+      <button class="month-btn" onclick="changeMonth(1)">›</button>
+    </div>
   </div>
-  <div class="sec">이번달 카드별 사용액</div>
+  <div class="sec">카드별 현황</div>
   <div id="card-list"></div>
 </div>
 
@@ -952,7 +962,7 @@ input[type=number]{-moz-appearance:textfield;}
 
 <script>
 // ── 서버 연동 ──
-const SERVER_URL = 'https://script.google.com/macros/s/AKfycbyNTPJrpedS123Je4ny1UP4gx-7w3k7lRr1eAtFzROjGlq4jb-ZQG9b86S8PDR8_WHS/exec';
+const SERVER_URL = 'https://script.google.com/macros/s/AKfycby6lXZsVqhNE5F6c2U83Zfl7fQG3D9erWLsG26QEVV7W2KpR0LfkZk3kJCp884spnW6/exec';
 let syncing = false;
 
 async function syncToServer() {
@@ -1436,6 +1446,8 @@ let txFilter = 'all';
 function clearDateFilter() {
   const el = document.getElementById('tx-date-filter');
   if(el) el.value = '';
+  const cf = document.getElementById('tx-card-filter');
+  if(cf) cf.value = '';
   renderTxFull();
 }
 
@@ -1539,6 +1551,14 @@ function saveCard() {
   toast('💳 카드가 저장됐어요');
 }
 
+function toggleSuspend(id) {
+  const c = D.cards.find(c=>c.id===id);
+  if(!c) return;
+  c.suspended = !c.suspended;
+  save(true); renderCard();
+  toast(c.suspended ? '🚫 카드가 정지됐어요' : '✅ 카드 정지가 해제됐어요');
+}
+
 function delCard(id) {
   if (!confirm('이 카드를 삭제할까요?')) return;
   D.cards = D.cards.filter(c=>c.id!==id);
@@ -1560,29 +1580,32 @@ function renderCard() {
     el.innerHTML='<div class="empty"><div class="empty-icon">💳</div>카드가 없어요<br>+ 버튼으로 추가해요</div>';
     return;
   }
-  const txs = getMonthTx().filter(t=>t.type==='expense');
-  const now = new Date();
+  const mk = monthKey();
+  const txs = D.transactions.filter(t=>t.type==='expense' && t.date.startsWith(mk));
   el.innerHTML = D.cards.map(c => {
-    // 일시불 지출 (할부 관련 내역 제외)
+    const suspended = c.suspended || false;
+
+    // 일시불/할부 분리
     const cardTxs = txs.filter(t=>String(t.cardId)===String(c.id));
     const instTxs = cardTxs.filter(t=>t.name.includes('할부'));
     const normalTxs = cardTxs.filter(t=>!t.name.includes('할부'));
     const normalSpent = normalTxs.reduce((s,t)=>s+t.amount,0);
+    const instPayment = instTxs.reduce((s,t)=>s+t.amount,0);
 
-    // 이번달 추가된 할부 총액 (실적은 할부 총액으로 한번에 잡힘)
+    // 선택 월에 추가된 할부 총액
     const cardInsts = D.installments.filter(i=>String(i.cardId)===String(c.id));
     const thisMonthInsts = cardInsts.filter(i=>{
       const addDate = i.firstDate || i.start+'-01';
-      return addDate.startsWith(now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'));
+      return addDate.startsWith(mk);
     });
     const instTotal = thisMonthInsts.reduce((s,i)=>s+i.total,0);
 
-    // 실적 = 일시불 + 이번달 추가 할부 총액
-    const perf = normalSpent + instTotal;
+    // 실적 = 일시불 + 신규 할부 총액
+    const perf = suspended ? 0 : normalSpent + instTotal;
     const pct = c.target>0 ? Math.min(Math.round(perf/c.target*100),100) : 0;
     const done = c.target>0 && perf>=c.target;
 
-    // 남은 할부금 (이 카드의 전체 진행중 할부)
+    // 남은 할부금
     const activeInsts = cardInsts.filter(i=>i.paid<i.months);
     const remainTotal = activeInsts.reduce((s,i)=>{
       const remain=i.months-i.paid;
@@ -1590,42 +1613,55 @@ function renderCard() {
       return s+remain*monthly;
     },0);
 
-    return `<div class="card-item">
+    // 이번달 신규 할부 목록
+    const instListHtml = thisMonthInsts.length>0
+      ? thisMonthInsts.map(i=>`<div style="font-size:10px;color:var(--text2);padding:2px 0;">· ${i.name} ${fmtF(i.total)}</div>`).join('')
+      : '<div style="font-size:10px;color:var(--text3);">없음</div>';
+
+    return `<div class="card-item" style="opacity:${suspended?0.5:1}">
       <div class="card-item-header">
         <div>
-          <div class="card-item-name">${c.company} ${c.name}</div>
-          <div class="card-cycle">결제일: 매월 ${c.payday}일 · 실적기간: ${c.startday||1}일~${c.endday?c.endday+'일':'말일'}</div>
+          <div class="card-item-name">
+            ${suspended?'🚫 ':''}${c.company} ${c.name}
+            ${suspended?'<span style="font-size:10px;color:var(--danger);font-weight:700;margin-left:4px;">정지</span>':''}
+          </div>
+          <div class="card-cycle">결제일: 매월 ${c.payday}일 · 실적: ${c.startday||1}일~${c.endday?c.endday+'일':'말일'}</div>
         </div>
         <div class="card-item-actions">
+          <button class="card-item-action" onclick="toggleSuspend('${c.id}')" title="${suspended?'정지해제':'카드정지'}">${suspended?'✅':'🚫'}</button>
           <button class="card-item-action" onclick="openCardModal('${c.id}')">✏️</button>
           <button class="card-item-action" onclick="delCard('${c.id}')">🗑️</button>
         </div>
       </div>
-      <div class="card-spent">${fmtF(perf)}</div>
-      ${c.target>0?`
-      <div class="card-progress">
+      ${!suspended&&c.target>0?`
+      <div class="card-progress" style="margin-bottom:8px;">
         <div class="card-progress-header">
           <span class="card-progress-label">실적 ${fmtF(perf)} / ${fmtF(c.target)}</span>
           <span class="card-progress-val" style="color:${done?'var(--accent3)':'var(--warn)'}">${pct}%</span>
         </div>
         <div class="card-progress-bar"><div class="card-progress-fill ${done?'done':''}" style="width:${pct}%"></div></div>
+        <span class="card-badge ${done?'done':'ing'}" style="margin-top:6px;display:inline-block;">${done?'✅ 실적 달성!':'📊 실적 진행 중'}</span>
+      </div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+        <div style="background:rgba(128,128,128,0.08);border-radius:8px;padding:10px;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">💳 일시불 이용금액</div>
+          <div style="font-size:14px;font-weight:700;">${fmtF(normalSpent)}</div>
+        </div>
+        <div style="background:rgba(124,106,247,0.08);border-radius:8px;padding:10px;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">📋 총 할부금 (이번달 신규)</div>
+          <div style="font-size:14px;font-weight:700;color:var(--accent);">${fmtF(instTotal)}</div>
+          <div style="margin-top:4px;">${instListHtml}</div>
+        </div>
+        <div style="background:rgba(247,195,106,0.08);border-radius:8px;padding:10px;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">📅 이번달 할부 납부금</div>
+          <div style="font-size:14px;font-weight:700;color:var(--warn);">${fmtF(instPayment)}</div>
+        </div>
+        <div style="background:rgba(247,106,138,0.08);border-radius:8px;padding:10px;">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;">💸 남은 할부금</div>
+          <div style="font-size:14px;font-weight:700;color:var(--accent2);">${fmtF(remainTotal)}</div>
+        </div>
       </div>
-      <span class="card-badge ${done?'done':'ing'}">${done?'✅ 실적 달성!':'📊 실적 진행 중'}</span>`:''}
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;">
-        <div style="background:rgba(128,128,128,0.1);border-radius:8px;padding:8px;text-align:center;">
-          <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">일시불</div>
-          <div style="font-size:12px;font-weight:700;">${fmtF(normalSpent)}</div>
-        </div>
-        <div style="background:rgba(124,106,247,0.1);border-radius:8px;padding:8px;text-align:center;">
-          <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">할부총액(이번달)</div>
-          <div style="font-size:12px;font-weight:700;color:var(--accent);">${fmtF(instTotal)}</div>
-        </div>
-        <div style="background:rgba(247,106,138,0.1);border-radius:8px;padding:8px;text-align:center;">
-          <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">남은할부금</div>
-          <div style="font-size:12px;font-weight:700;color:var(--accent2);">${fmtF(remainTotal)}</div>
-        </div>
-      </div>
-      ${c.benefits?`<div class="card-benefits">💡 ${c.benefits}</div>`:''}
+      ${c.benefits?`<div class="card-benefits" style="margin-top:8px;">💡 ${c.benefits}</div>`:''}
     </div>`;
   }).join('');
 
@@ -1635,11 +1671,18 @@ function renderCard() {
     const el=document.getElementById(id);
     if(el) el.innerHTML=opts;
   });
+  // 내역 카드 필터 업데이트
+  const filterEl=document.getElementById('tx-card-filter');
+  if(filterEl) {
+    const curVal=filterEl.value;
+    filterEl.innerHTML='<option value="">💳 전체 카드</option>'+D.cards.map(c=>`<option value="${c.id}">${c.company} ${c.name}</option>`).join('');
+    filterEl.value=curVal;
+  }
 }
 
 function renderAll() {
   const mk=curYear+'년 '+(curMonth+1)+'월';
-  ['ml1','ml2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mk;});
+  ['ml1','ml2','ml-card'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mk;});
   renderCard(); renderHome(); renderTxFull(); renderImpulse(); renderInst(); renderSettings();
 }
 
@@ -1732,6 +1775,8 @@ function renderTxFull() {
   else if(txFilter==='expense') txs=txs.filter(t=>t.type==='expense');
   const dateFilter=document.getElementById('tx-date-filter')?.value;
   if(dateFilter) txs=txs.filter(t=>t.date===dateFilter);
+  const cardFilter=document.getElementById('tx-card-filter')?.value;
+  if(cardFilter) txs=txs.filter(t=>String(t.cardId)===String(cardFilter));
   const el=document.getElementById('tx-full');
   if(txs.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>이번달 내역이 없어요</div>';return;}
   const grouped={};
