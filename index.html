@@ -1156,7 +1156,7 @@ function setTxFilter(f, el) {
 
 function openCardModal(id) {
   document.getElementById('card-edit-id').value = id||'';
-  document.getElementById('card-modal-title').innerHTML = (id?'카드 수정':'카드 추가') + ' <button class="modal-close" onclick="closeModal('modal-card')">✕</button>';
+  document.getElementById('card-modal-title').innerHTML = (id?'카드 수정':'카드 추가') + ' <button class="modal-close" onclick="closeModal(\'modal-card\')">✕</button>';
   if (id) {
     const c = D.cards.find(c=>c.id===id);
     if (!c) return;
