@@ -173,6 +173,33 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 /* 알림 토스트 */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+
+/* 필터 탭 */
+.filter-tabs{display:flex;gap:8px;padding:0 16px 12px;}
+.filter-tab{flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--card2);color:var(--text2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;text-align:center;}
+.filter-tab.active{border-color:var(--accent);background:rgba(124,106,247,0.15);color:var(--accent);}
+.filter-tab.active.income{border-color:var(--accent3);background:rgba(106,247,194,0.15);color:var(--accent3);}
+.filter-tab.active.expense{border-color:var(--accent2);background:rgba(247,106,138,0.15);color:var(--accent2);}
+
+/* 카드 관리 */
+.card-item{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:16px;margin:0 16px 12px;}
+.card-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.card-item-name{font-size:16px;font-weight:900;}
+.card-item-actions{display:flex;gap:8px;}
+.card-item-action{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;}
+.card-progress{margin-bottom:8px;}
+.card-progress-header{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.card-progress-label{color:var(--text2);}
+.card-progress-val{font-weight:700;}
+.card-progress-bar{height:6px;background:var(--border);border-radius:99px;overflow:hidden;}
+.card-progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s;}
+.card-progress-fill.done{background:linear-gradient(90deg,var(--accent3),#17a85a);}
+.card-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;margin-right:4px;margin-top:4px;}
+.card-badge.done{background:rgba(106,247,162,0.15);color:var(--accent3);}
+.card-badge.ing{background:rgba(247,195,106,0.1);color:var(--warn);}
+.card-benefits{margin-top:8px;font-size:11px;color:var(--text2);line-height:1.7;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;}
+.card-spent{font-size:18px;font-weight:900;color:var(--accent2);margin-bottom:4px;}
+.card-cycle{font-size:11px;color:var(--text3);}
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 input[type=number]{-moz-appearance:textfield;}
@@ -297,6 +324,11 @@ input[type=number]{-moz-appearance:textfield;}
       <button class="month-btn" onclick="changeMonth(1)">›</button>
     </div>
   </div>
+  <div class="filter-tabs">
+    <button class="filter-tab active" id="filter-all" onclick="setTxFilter('all',this)">전체</button>
+    <button class="filter-tab income" id="filter-income" onclick="setTxFilter('income',this)">수입</button>
+    <button class="filter-tab expense" id="filter-expense" onclick="setTxFilter('expense',this)">지출</button>
+  </div>
   <div class="tx-list" id="tx-full"></div>
 </div>
 
@@ -313,6 +345,18 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="psych-quote" id="impulse-tip"></div>
   </div>
   <div id="impulse-list"></div>
+</div>
+
+<!-- 카드 관리 페이지 -->
+<div id="page-card" class="page">
+  <div class="header">
+    <div>
+      <div class="header-title">💳 카드 관리</div>
+      <div class="header-sub">카드별 실적 및 혜택 관리</div>
+    </div>
+  </div>
+  <div class="sec">이번달 카드별 사용액</div>
+  <div id="card-list"></div>
 </div>
 
 <!-- 할부 페이지 -->
@@ -374,7 +418,8 @@ input[type=number]{-moz-appearance:textfield;}
   <button class="tab active" onclick="showPage('home',this)"><span class="tab-icon">🏠</span>홈</button>
   <button class="tab" onclick="showPage('tx',this)"><span class="tab-icon">📋</span>내역</button>
   <button class="tab" onclick="showPage('impulse',this)"><span class="tab-icon">🛒</span>사고싶다</button>
-  <button class="tab" onclick="showPage('inst',this)"><span class="tab-icon">💳</span>할부</button>
+  <button class="tab" onclick="showPage('card',this)"><span class="tab-icon">💳</span>카드</button>
+  <button class="tab" onclick="showPage('inst',this)"><span class="tab-icon">📅</span>할부</button>
   <button class="tab" onclick="showPage('setting',this)"><span class="tab-icon">⚙️</span>설정</button>
 </div>
 
@@ -401,6 +446,12 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="input-group">
       <label class="input-label">날짜</label>
       <input class="input-field" id="tx-date" type="date">
+    </div>
+    <div class="input-group" id="tx-card-wrap">
+      <label class="input-label">사용 카드 (선택)</label>
+      <select class="input-field" id="tx-card">
+        <option value="">카드 선택 안함</option>
+      </select>
     </div>
     <!-- 충동구매 체크 -->
     <div class="impulse-check" id="impulse-check-section">
@@ -692,6 +743,62 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
+<!-- 카드 추가/수정 모달 -->
+<div class="modal-overlay" id="modal-card">
+  <div class="modal">
+    <div class="modal-title" id="card-modal-title">카드 추가 <button class="modal-close" onclick="closeModal('modal-card')">✕</button></div>
+    <input type="hidden" id="card-edit-id">
+    <div class="input-group">
+      <label class="input-label">카드 이름</label>
+      <input class="input-field" id="card-name" type="text" placeholder="예: 신한 Deep Dream">
+    </div>
+    <div class="input-group">
+      <label class="input-label">카드사</label>
+      <select class="input-field" id="card-company">
+        <option value="신한">신한</option>
+        <option value="현대">현대</option>
+        <option value="삼성">삼성</option>
+        <option value="KB국민">KB국민</option>
+        <option value="하나">하나</option>
+        <option value="우리">우리</option>
+        <option value="롯데">롯데</option>
+        <option value="NH농협">NH농협</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">월 실적 기준 (원)</label>
+      <input class="input-field" id="card-target" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="예: 300,000">
+    </div>
+    <div class="input-group">
+      <label class="input-label">결제일</label>
+      <select class="input-field" id="card-payday">
+        <option value="1">1일</option><option value="5">5일</option>
+        <option value="7">7일</option><option value="10">10일</option>
+        <option value="14">14일</option><option value="15">15일</option>
+        <option value="17">17일</option><option value="20">20일</option>
+        <option value="25">25일</option><option value="27">27일</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">전월 실적 기산일 (결제일 기준 전달 며칠부터)</label>
+      <select class="input-field" id="card-startday">
+        <option value="1">매월 1일 ~ 말일</option>
+        <option value="결제일-1">결제일 전날 기준</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">주요 혜택 (간단히)</label>
+      <input class="input-field" id="card-benefits" type="text" placeholder="예: 편의점 5% 할인, 주유 리터당 50원">
+    </div>
+    <div class="input-group">
+      <label class="input-label">연회비</label>
+      <input class="input-field" id="card-fee" type="text" inputmode="numeric" oninput="fmtInput(this)" placeholder="0">
+    </div>
+    <button class="submit-btn" onclick="saveCard()">저장</button>
+  </div>
+</div>
+
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
@@ -821,9 +928,10 @@ function loadData() {
     transactions: raw.transactions || [],
     impulses: raw.impulses || [],
     installments: raw.installments || [],
-    settings: raw.settings || { salary: 0, card: 0 },
+    settings: raw.settings || {},
     categories: raw.categories || DEFAULT_CATS,
     budgets: raw.budgets || {},
+    cards: raw.cards || [],
   };
 }
 let D = loadData();
@@ -869,6 +977,7 @@ function showPage(name, el) {
   if (name==='impulse') { fab.onclick=()=>openImpModal(); fab.style.display='flex'; }
   else if (name==='setting') { fab.style.display='none'; }
   else if (name==='inst') { fab.onclick=()=>openInstModal(); fab.style.display='flex'; }
+  else if (name==='card') { fab.onclick=()=>openCardModal(); fab.style.display='flex'; }
   else { fab.onclick=openTxModal; fab.style.display='flex'; }
   renderAll();
 }
@@ -915,6 +1024,8 @@ function setType(t) {
   document.getElementById('btn-exp').className='type-btn'+(t==='expense'?' sel-exp':'');
   document.getElementById('btn-inc').className='type-btn'+(t==='income'?' sel-inc':'');
   document.getElementById('impulse-check-section').style.display = t==='expense'?'block':'none';
+  const cardWrap=document.getElementById('tx-card-wrap');
+  if(cardWrap) cardWrap.style.display = t==='expense'?'block':'none';
   selCat = t==='income' ? 'salary' : (D.categories[0]?.id||'food');
   renderCatSelGrid();
 }
@@ -941,9 +1052,10 @@ function addTx() {
     document.getElementById('reason2').value.trim(),
     document.getElementById('reason3').value.trim(),
   ].filter(Boolean);
+  const cardId = document.getElementById('tx-card')?.value || '';
   D.transactions.push({
     id:Date.now(), type:curType, amount, name, date, cat:selCat,
-    impulse:isImpulse, reasons
+    impulse:isImpulse, reasons, cardId
   });
   save(true); closeModal('modal-tx'); renderAll();
   if(isImpulse) toast('💸 충동구매로 기록됐어요');
@@ -1032,10 +1144,128 @@ function toast(msg, dur=2200) {
 }
 
 // ── 렌더 ──
+// ── 카드 관련 ──
+let txFilter = 'all';
+
+function setTxFilter(f, el) {
+  txFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTxFull();
+}
+
+function openCardModal(id) {
+  document.getElementById('card-edit-id').value = id||'';
+  document.getElementById('card-modal-title').innerHTML = (id?'카드 수정':'카드 추가') + ' <button class="modal-close" onclick="closeModal('modal-card')">✕</button>';
+  if (id) {
+    const c = D.cards.find(c=>c.id===id);
+    if (!c) return;
+    document.getElementById('card-name').value = c.name||'';
+    document.getElementById('card-company').value = c.company||'신한';
+    setFmtVal('card-target', c.target||0);
+    document.getElementById('card-payday').value = c.payday||'15';
+    document.getElementById('card-startday').value = c.startday||'1';
+    document.getElementById('card-benefits').value = c.benefits||'';
+    setFmtVal('card-fee', c.fee||0);
+  } else {
+    document.getElementById('card-name').value='';
+    document.getElementById('card-company').value='신한';
+    document.getElementById('card-target').value='';
+    document.getElementById('card-payday').value='15';
+    document.getElementById('card-startday').value='1';
+    document.getElementById('card-benefits').value='';
+    document.getElementById('card-fee').value='';
+  }
+  document.getElementById('modal-card').classList.add('show');
+}
+
+function saveCard() {
+  const id = document.getElementById('card-edit-id').value;
+  const name = document.getElementById('card-name').value.trim();
+  if (!name) { toast('카드 이름을 입력해주세요'); return; }
+  const card = {
+    id: id || String(Date.now()),
+    name,
+    company: document.getElementById('card-company').value,
+    target: getRawVal('card-target'),
+    payday: parseInt(document.getElementById('card-payday').value),
+    startday: document.getElementById('card-startday').value,
+    benefits: document.getElementById('card-benefits').value.trim(),
+    fee: getRawVal('card-fee'),
+  };
+  if (id) {
+    const idx = D.cards.findIndex(c=>c.id===id);
+    if (idx>=0) D.cards[idx] = card;
+  } else {
+    D.cards.push(card);
+  }
+  save(true); closeModal('modal-card'); renderAll();
+  toast('💳 카드가 저장됐어요');
+}
+
+function delCard(id) {
+  if (!confirm('이 카드를 삭제할까요?')) return;
+  D.cards = D.cards.filter(c=>c.id!==id);
+  save(true); renderAll();
+}
+
+// 카드별 이번달 사용액 계산
+function getCardSpent(cardId) {
+  const card = D.cards.find(c=>c.id===cardId);
+  if (!card) return 0;
+  const txs = getMonthTx().filter(t=>t.type==='expense' && t.cardId===cardId);
+  return txs.reduce((s,t)=>s+t.amount,0);
+}
+
+function renderCard() {
+  const el = document.getElementById('card-list');
+  if (!el) return;
+  if (D.cards.length===0) {
+    el.innerHTML='<div class="empty"><div class="empty-icon">💳</div>카드가 없어요<br>+ 버튼으로 추가해요</div>';
+    return;
+  }
+  const txs = getMonthTx().filter(t=>t.type==='expense');
+  el.innerHTML = D.cards.map(c => {
+    const spent = txs.filter(t=>t.cardId===c.id).reduce((s,t)=>s+t.amount,0);
+    const pct = c.target>0 ? Math.min(Math.round(spent/c.target*100),100) : 0;
+    const done = c.target>0 && spent>=c.target;
+    return `<div class="card-item">
+      <div class="card-item-header">
+        <div>
+          <div class="card-item-name">${c.company} ${c.name}</div>
+          <div class="card-cycle">결제일: 매월 ${c.payday}일</div>
+        </div>
+        <div class="card-item-actions">
+          <button class="card-item-action" onclick="openCardModal('${c.id}')">✏️</button>
+          <button class="card-item-action" onclick="delCard('${c.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="card-spent">${fmtF(spent)}</div>
+      ${c.target>0?`
+      <div class="card-progress">
+        <div class="card-progress-header">
+          <span class="card-progress-label">실적 ${fmtF(spent)} / ${fmtF(c.target)}</span>
+          <span class="card-progress-val" style="color:${done?'var(--accent3)':'var(--warn)'}">${pct}%</span>
+        </div>
+        <div class="card-progress-bar"><div class="card-progress-fill ${done?'done':''}" style="width:${pct}%"></div></div>
+      </div>
+      <span class="card-badge ${done?'done':'ing'}">${done?'✅ 실적 달성!':'📊 실적 진행 중'}</span>`:''}
+      ${c.benefits?`<div class="card-benefits">💡 ${c.benefits}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // 카드 선택 드롭다운 업데이트
+  const opts = '<option value="">카드 선택 안함</option>' + D.cards.map(c=>`<option value="${c.id}">${c.company} ${c.name}</option>`).join('');
+  ['tx-card','edit-tx-card'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML=opts;
+  });
+}
+
 function renderAll() {
   const mk=curYear+'년 '+(curMonth+1)+'월';
   ['ml1','ml2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mk;});
-  renderHome(); renderTxFull(); renderImpulse(); renderInst(); renderSettings();
+  renderHome(); renderTxFull(); renderImpulse(); renderInst(); renderCard(); renderSettings();
 }
 
 function renderHome() {
@@ -1110,6 +1340,7 @@ function txItemHtml(t) {
       <div class="tx-meta">
         <span>${c.name} · ${t.date}</span>
         ${t.impulse?'<span class="impulse-tag">충동</span>':''}
+        ${t.cardId?`<span style="font-size:9px;color:var(--accent);background:rgba(124,106,247,0.1);padding:1px 5px;border-radius:4px;">${(D.cards.find(cd=>cd.id===t.cardId)||{name:''}).name}</span>`:''}
       </div>
     </div>
     <div class="tx-right" style="display:flex;align-items:center;gap:8px;">
@@ -1120,7 +1351,9 @@ function txItemHtml(t) {
 }
 
 function renderTxFull() {
-  const txs=[...getMonthTx()].sort((a,b)=>b.date.localeCompare(a.date));
+  let txs=[...getMonthTx()].sort((a,b)=>b.date.localeCompare(a.date));
+  if(txFilter==='income') txs=txs.filter(t=>t.type==='income');
+  else if(txFilter==='expense') txs=txs.filter(t=>t.type==='expense');
   const el=document.getElementById('tx-full');
   if(txs.length===0){el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>이번달 내역이 없어요</div>';return;}
   const grouped={};
@@ -1432,6 +1665,8 @@ function editTx(id) {
   document.getElementById('edit-tx-name').value=t.name;
   document.getElementById('edit-tx-date').value=t.date;
   document.getElementById('edit-is-impulse').checked=t.impulse||false;
+  const editCardEl=document.getElementById('edit-tx-card');
+  if(editCardEl) editCardEl.value=t.cardId||'';
   document.getElementById('edit-impulse-reason-wrap').style.display=t.impulse?'block':'none';
   document.getElementById('edit-reason1').value=(t.reasons&&t.reasons[0])||'';
   document.getElementById('edit-reason2').value=(t.reasons&&t.reasons[1])||'';
@@ -1472,6 +1707,7 @@ function saveEditTx() {
   t.date=document.getElementById('edit-tx-date').value||t.date;
   t.cat=editSelCat||t.cat;
   t.impulse=document.getElementById('edit-is-impulse').checked;
+  t.cardId=document.getElementById('edit-tx-card')?.value||'';
   t.reasons=[
     document.getElementById('edit-reason1').value.trim(),
     document.getElementById('edit-reason2').value.trim(),
